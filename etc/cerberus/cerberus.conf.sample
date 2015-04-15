@@ -1,0 +1,32 @@
+
+[DEFAULT]
+policy_file = /etc/cerberus/policy.json
+debug = True
+verbose = True
+notification_topics = svc_notifications
+rabbit_password = guest
+rabbit_hosts = localhost
+# rpc_backend = cerberus.openstack.common.rpc.impl_kombu
+
+[service_credentials]
+os_tenant_name = service
+os_password = svc
+os_username = cerberus
+
+[keystone_authtoken]
+signing_dir = /var/cache/cerberus
+admin_tenant_name = service
+admin_password = svc
+admin_user = cerberus
+auth_protocol = http
+auth_port = 5000
+auth_host = localhost
+
+[database]
+connection = mysql://root:svc@localhost/cerberus?charset=utf8
+
+[ikare]
+ikare_admin=NONE
+ikare_password=NONE
+ikare_url=HOST
+ikare_role_name=ikare
