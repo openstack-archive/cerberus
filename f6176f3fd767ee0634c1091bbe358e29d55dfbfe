@@ -1,0 +1,8 @@
+Verified+2: Jenkins
+Code-Review+2: Laurent Bessard <laurent.bessard@eurogiciel.fr>
+Workflow+1: Laurent Bessard <laurent.bessard@eurogiciel.fr>
+Submitted-by: Jenkins
+Submitted-at: Tue, 28 Apr 2015 08:17:03 +0000
+Reviewed-on: https://review.openstack.org/173741
+Project: stackforge/cerberus
+Branch: refs/heads/master
