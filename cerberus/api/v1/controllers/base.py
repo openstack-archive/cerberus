@@ -28,6 +28,7 @@ LOG = log.getLogger(__name__)
 class BaseController(rest.RestController):
 
     def __init__(self):
+        super(BaseController, self).__init__()
         transport = messaging.get_transport(cfg.CONF)
         target = messaging.Target(topic='test_rpc', server='server1')
         self.client = messaging.RPCClient(transport, target)

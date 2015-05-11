@@ -14,6 +14,8 @@ python-subunit
 nose
 nose-exclude
 nosexcover
-sphinx>=1.1.2
-oslosphinx
 
+# Doc requirements
+sphinx>=1.1.2,<1.1.999
+sphinxcontrib-pecanwsme>=0.6,<=0.8.0
+oslosphinx<=2.5.0

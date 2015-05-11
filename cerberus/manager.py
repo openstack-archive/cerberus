@@ -22,10 +22,10 @@ from oslo import messaging
 from stevedore import extension
 
 from cerberus.common import errors
-from cerberus.db.sqlalchemy import api
+from cerberus.common import service
+from cerberus.db.sqlalchemy import api as db_api
 from cerberus.openstack.common import log
 from cerberus.openstack.common import loopingcall
-from cerberus.openstack.common import service
 from cerberus.openstack.common import threadgroup
 from plugins import base
 
@@ -33,21 +33,14 @@ from plugins import base
 LOG = log.getLogger(__name__)
 
 OPTS = [
-
-    cfg.MultiStrOpt('messaging_urls',
-                    default=[],
-                    help="Messaging URLs to listen for notifications. "
-                         "Example: transport://user:pass@host1:port"
-                         "[,hostN:portN]/virtual_host "
-                         "(DEFAULT/transport_url is used if empty)"),
-    cfg.ListOpt('notification-topics', default=['designate']),
-    cfg.ListOpt('cerberus_control_exchange', default=['cerberus']),
+    cfg.ListOpt('notification_topics', default=['notifications', ],
+                help='AMQP topic used for OpenStack notifications'),
 ]
 
 cfg.CONF.register_opts(OPTS)
 
 
-class CerberusManager(service.Service):
+class CerberusManager(service.CerberusService):
 
     TASK_NAMESPACE = 'cerberus.plugins'
 
@@ -59,32 +52,49 @@ class CerberusManager(service.Service):
         )
 
     def __init__(self):
-        self.task_id = 0
         super(CerberusManager, self).__init__()
 
     def _register_plugin(self, extension):
-        # Record plugin in database
+        """Register plugin in database
+
+        :param extension: stevedore extension containing the plugin to register
+        :return:
+        """
+
         version = extension.entry_point.dist.version
         plugin = extension.obj
-        db_plugin_info = api.plugin_info_get(plugin._name)
+        db_plugin_info = db_api.plugin_info_get(plugin._name)
         if db_plugin_info is None:
-            db_plugin_info = api.plugin_info_create({'name': plugin._name,
-                                                     'uuid': uuid.uuid4(),
-                                                     'version': version,
-                                                     'provider':
-                                                     plugin.PROVIDER,
-                                                     'type': plugin.TYPE,
-                                                     'description':
-                                                     plugin.DESCRIPTION,
-                                                     'tool_name':
-                                                     plugin.TOOL_NAME
-                                                     })
+            db_plugin_info = db_api.plugin_info_create({'name': plugin._name,
+                                                        'uuid': uuid.uuid4(),
+                                                        'version': version,
+                                                        'provider':
+                                                            plugin.PROVIDER,
+                                                        'type': plugin.TYPE,
+                                                        'description':
+                                                            plugin.DESCRIPTION,
+                                                        'tool_name':
+                                                            plugin.TOOL_NAME})
         else:
-            api.plugin_version_update(db_plugin_info.id, version)
+            db_api.plugin_version_update(db_plugin_info.id, version)
 
         plugin._uuid = db_plugin_info.uuid
 
+    def add_stored_tasks(self):
+        """Add stored tasks when Cerberus starts"""
+        tasks = db_api.get_all_tasks()
+        for task in tasks:
+            kwargs = {}
+            kwargs['task_name'] = task.name
+            kwargs['task_type'] = task.type
+            kwargs['task_period'] = task.period
+            kwargs['task_id'] = task.uuid
+            kwargs['running'] = task.running
+            kwargs['persistent'] = 'True'
+            self._add_task(task.plugin_id, task.method, **kwargs)
+
     def start(self):
+        """Start Cerberus Manager"""
 
         self.rpc_server = None
         self.notification_server = None
@@ -109,6 +119,8 @@ class CerberusManager(service.Service):
             targets.extend(handler.get_targets(cfg.CONF))
             plugins.append(handler)
 
+        self.add_stored_tasks()
+
         transport = messaging.get_transport(cfg.CONF)
 
         if transport:
@@ -124,39 +136,48 @@ class CerberusManager(service.Service):
             self.rpc_server.start()
             self.notification_server.start()
 
-    def _get_unique_task(self, id):
+    def _get_unique_task(self, task_id):
+        """Get unique task (executed once) thanks to its identifier
+
+        :param task_id: the uique identifier of the task
+        :return: the task or None if there is not any task with this id
+        """
 
         try:
             unique_task = next(
                 thread for thread in self.tg.threads
-                if (thread.kw.get('task_id', None) == id))
+                if (thread.kw.get('task_id', None) == task_id))
         except StopIteration:
             return None
         return unique_task
 
-    def _get_recurrent_task(self, id):
+    def _get_recurrent_task(self, task_id):
+        """Get recurrent task thanks to its identifier
+
+        :param task_id: the uique identifier of the task
+        :return: the task or None if there is not any task with this id
+        """
         try:
             recurrent_task = next(timer for timer in self.tg.timers if
-                                  (timer.kw.get('task_id', None) == id))
+                                  (timer.kw.get('task_id', None) == task_id))
         except StopIteration:
             return None
         return recurrent_task
 
     def _add_unique_task(self, callback, *args, **kwargs):
-        """
-        Add a simple task executing only once without delay
+        """Add an unique task (executed once) without delay
+
         :param callback: Callable function to call when it's necessary
         :param args: list of positional arguments to call the callback with
         :param kwargs: dict of keyword arguments to call the callback with
         :return the thread object that is created
         """
-        self.tg.add_thread(callback, *args, **kwargs)
+        return self.tg.add_thread(callback, *args, **kwargs)
 
-    def _add_recurrent_task(self, callback, period, initial_delay=None, *args,
-                            **kwargs):
-        """
-        Add a recurrent task executing periodically with or without an initial
-         delay
+    def _add_stopped_reccurent_task(self, callback, period, initial_delay=None,
+                                    *args, **kwargs):
+        """Add a recurrent task (executed periodically) without starting it
+
         :param callback: Callable function to call when it's necessary
         :param period: the time in seconds during two executions of the task
         :param initial_delay: the time after the first execution of the task
@@ -164,13 +185,27 @@ class CerberusManager(service.Service):
         :param args: list of positional arguments to call the callback with
         :param kwargs: dict of keyword arguments to call the callback with
         """
-        self.tg.add_timer(period, callback, initial_delay, *args, **kwargs)
+        return self.tg.add_stopped_timer(callback, initial_delay,
+                                         *args, **kwargs)
+
+    def _add_recurrent_task(self, callback, period, initial_delay=None, *args,
+                            **kwargs):
+        """Add a recurrent task (executed periodically)
+
+        :param callback: Callable function to call when it's necessary
+        :param period: the time in seconds during two executions of the task
+        :param initial_delay: the time after the first execution of the task
+         occurs
+        :param args: list of positional arguments to call the callback with
+        :param kwargs: dict of keyword arguments to call the callback with
+        """
+        return self.tg.add_timer(period, callback, initial_delay, *args,
+                                 **kwargs)
 
     def get_plugins(self, ctx):
-        '''
-        This method is designed to be called by an rpc client.
-        E.g: Cerberus-api
-        It is used to get information about plugins
+        '''List plugins loaded by Cerberus manager
+
+        This method is called by the Cerberus-api rpc client
         '''
         json_plugins = []
         for extension in self.cerberus_manager:
@@ -179,10 +214,10 @@ class CerberusManager(service.Service):
             json_plugins.append(res)
         return json_plugins
 
-    def _get_plugin_from_uuid(self, uuid):
+    def _get_plugin_from_uuid(self, plugin_id):
         for extension in self.cerberus_manager:
             plugin = extension.obj
-            if (plugin._uuid == uuid):
+            if plugin._uuid == plugin_id:
                 return plugin
         return None
 
@@ -193,26 +228,21 @@ class CerberusManager(service.Service):
         else:
             return None
 
-    def add_task(self, ctx, uuid, method_, *args, **kwargs):
-        '''
-        This method is designed to be called by an rpc client.
-        E.g: Cerberus-api
-        It is used to call a method of a plugin back
-        :param ctx: a request context dict supplied by client
-        :param uuid: the uuid of the plugin to call method onto
+    def _add_task(self, plugin_id, method_, *args, **kwargs):
+        '''Add a task in the Cerberus manager
+
+        :param plugin_id: the uuid of the plugin to call method onto
         :param method_: the method to call back
         :param task_type: the type of task to create
         :param args: some extra arguments
         :param kwargs: some extra keyworded arguments
         '''
-        self.task_id += 1
-        kwargs['task_id'] = self.task_id
-        kwargs['plugin_id'] = uuid
+        kwargs['plugin_id'] = plugin_id
         task_type = kwargs.get('task_type', "unique")
-        plugin = self._get_plugin_from_uuid(uuid)
+        plugin = self._get_plugin_from_uuid(plugin_id)
 
         if plugin is None:
-            raise errors.PluginNotFound(uuid)
+            raise errors.PluginNotFound(plugin_id)
 
         if (task_type.lower() == 'recurrent'):
             try:
@@ -221,10 +251,17 @@ class CerberusManager(service.Service):
                 LOG.exception(e)
                 raise errors.TaskPeriodNotInteger()
             try:
-                self._add_recurrent_task(getattr(plugin, method_),
-                                         task_period,
-                                         *args,
-                                         **kwargs)
+                if kwargs.get('running', True) is True:
+                    task = self._add_recurrent_task(getattr(plugin, method_),
+                                                    task_period,
+                                                    *args,
+                                                    **kwargs)
+                else:
+                    task = self._add_stopped_reccurent_task(
+                        getattr(plugin, method_),
+                        task_period,
+                        *args,
+                        **kwargs)
             except TypeError as e:
                 LOG.exception(e)
                 raise errors.MethodNotString()
@@ -235,7 +272,7 @@ class CerberusManager(service.Service):
                                                plugin.__class__.__name__)
         else:
             try:
-                self._add_unique_task(
+                task = self._add_unique_task(
                     getattr(plugin, method_),
                     *args,
                     **kwargs)
@@ -246,111 +283,186 @@ class CerberusManager(service.Service):
                 LOG.exception(e)
                 raise errors.MethodNotCallable(method_,
                                                plugin.__class__.__name__)
-        return self.task_id
 
-    def _stop_recurrent_task(self, id):
+        return task
+
+    def _store_task(self, task, method_):
+        try:
+            task_period_ = task.kw.get('task_period', None)
+            if task_period_ is not None:
+                task_period = int(task_period_)
+            else:
+                task_period = task_period_
+
+            db_api.create_task({'name': task.kw.get('task_name',
+                                                    'Unknown'),
+                                'method': str(method_),
+                                'type': task.kw['task_type'],
+                                'period': task_period,
+                                'plugin_id': task.kw['plugin_id'],
+                                'running': True,
+                                'uuid': task.kw['task_id']})
+
+        except Exception as e:
+            LOG.exception(e)
+            pass
+
+    def create_task(self, ctx, plugin_id, method_, *args, **kwargs):
+        """Create a task
+
+        This method is called by a rpc client. It adds a task in the manager
+        and stores it if the task is persistent
+
+        :param ctx: a request context dict supplied by client
+        :param plugin_id: the uuid of the plugin to call method onto
+        :param method_: the method to call back
+        :param args: some extra arguments
+        :param kwargs: some extra keyworded arguments
         """
-        Stop the recurrent task but does not remove it from the ThreadGroup.
-        I.e, the task still exists and could be restarted
-        Plus, if the task is running, wait for the end of its execution
-        :param id: the id of the recurrent task to stop
+        task_id = uuid.uuid4()
+        try:
+            task = self._add_task(plugin_id, method_, *args,
+                                  task_id=str(task_id), **kwargs)
+        except Exception:
+            raise
+        if kwargs.get('persistent', '') == 'True':
+            try:
+                self._store_task(task, method_)
+            except Exception as e:
+                LOG.exception(e)
+                pass
+        return str(task_id)
+
+    def _stop_recurrent_task(self, task_id):
+        """Stop the recurrent task but does not remove it from the ThreadGroup.
+
+        The task still exists and could be restarted. Plus, if the task is
+         running, wait for the end of its execution
+        :param task_id: the id of the recurrent task to stop
         :return:
         :raises:
             StopIteration: the task is not found
         """
-        recurrent_task = self._get_recurrent_task(id)
+        recurrent_task = self._get_recurrent_task(task_id)
         if recurrent_task is None:
-            raise errors.TaskNotFound(id)
+            raise errors.TaskNotFound(task_id)
         recurrent_task.stop()
+        if recurrent_task.kw.get('persistent', '') == 'True':
+            try:
+                db_api.update_state_task(task_id, False)
+            except Exception as e:
+                LOG.exception(e)
+                raise e
 
-    def _stop_unique_task(self, id):
-        unique_task = self._get_unique_task(id)
+    def _stop_unique_task(self, task_id):
+        """Stop the task. This task is automatically deleted as it's not
+        recurrent
+        """
+        unique_task = self._get_unique_task(task_id)
         if unique_task is None:
-            raise errors.TaskNotFound(id)
+            raise errors.TaskNotFound(task_id)
         unique_task.stop()
+        if unique_task.kw.get('persistent', '') == 'True':
+            try:
+                db_api.delete_task(task_id)
+            except Exception as e:
+                LOG.exception(e)
+                raise e
 
-    def _stop_task(self, id):
-        task = self._get_task(id)
+    def _stop_task(self, task_id):
+        task = self._get_task(task_id)
         if isinstance(task, loopingcall.FixedIntervalLoopingCall):
             try:
-                self._stop_recurrent_task(id)
+                self._stop_recurrent_task(task_id)
             except errors.InvalidOperation:
                 raise
         elif isinstance(task, threadgroup.Thread):
             try:
-                self._stop_unique_task(id)
+                self._stop_unique_task(task_id)
             except errors.InvalidOperation:
                 raise
 
-    def stop_task(self, ctx, id):
+    def stop_task(self, ctx, task_id):
         try:
-            self._stop_task(id)
+            self._stop_task(task_id)
         except errors.InvalidOperation:
             raise
-        return id
+        return task_id
 
-    def _delete_recurrent_task(self, id):
+    def _delete_recurrent_task(self, task_id):
         """
         Stop the task and delete the recurrent task from the ThreadGroup.
         If the task is running, wait for the end of its execution
-        :param id: the identifier of the task to delete
+        :param task_id: the identifier of the task to delete
         :return:
         """
-        recurrent_task = self._get_recurrent_task(id)
+        recurrent_task = self._get_recurrent_task(task_id)
         if (recurrent_task is None):
-            raise errors.TaskDeletionNotAllowed(id)
+            raise errors.TaskDeletionNotAllowed(task_id)
         recurrent_task.stop()
         try:
             self.tg.timers.remove(recurrent_task)
         except ValueError:
             raise
+        if recurrent_task.kw.get('persistent', '') == 'True':
+            try:
+                db_api.delete_task(task_id)
+            except Exception as e:
+                LOG.exception(e)
+                raise e
 
-    def delete_recurrent_task(self, ctx, id):
+    def delete_recurrent_task(self, ctx, task_id):
         '''
         This method is designed to be called by an rpc client.
         E.g: Cerberus-api
         Stop the task and delete the recurrent task from the ThreadGroup.
         If the task is running, wait for the end of its execution
         :param ctx: a request context dict supplied by client
-        :param id: the identifier of the task to delete
+        :param task_id: the identifier of the task to delete
         '''
         try:
-            self._delete_recurrent_task(id)
+            self._delete_recurrent_task(task_id)
         except errors.InvalidOperation:
             raise
-        return id
+        return task_id
 
-    def _force_delete_recurrent_task(self, id):
+    def _force_delete_recurrent_task(self, task_id):
         """
         Stop the task even if it is running and delete the recurrent task from
         the ThreadGroup.
-        :param id: the identifier of the task to force delete
+        :param task_id: the identifier of the task to force delete
         :return:
         """
-        recurrent_task = self._get_recurrent_task(id)
+        recurrent_task = self._get_recurrent_task(task_id)
         if (recurrent_task is None):
-            raise errors.TaskDeletionNotAllowed(id)
+            raise errors.TaskDeletionNotAllowed(task_id)
         recurrent_task.stop()
         recurrent_task.gt.kill()
         try:
             self.tg.timers.remove(recurrent_task)
         except ValueError:
             raise
+        if recurrent_task.kw.get('persistent', '') == 'True':
+            try:
+                db_api.delete_task(task_id)
+            except Exception as e:
+                LOG.exception(e)
+                raise e
 
-    def force_delete_recurrent_task(self, ctx, id):
+    def force_delete_recurrent_task(self, ctx, task_id):
         '''
         This method is designed to be called by an rpc client.
         E.g: Cerberus-api
         Stop the task even if it is running and delete the recurrent task
         from the ThreadGroup.
         :param ctx: a request context dict supplied by client
-        :param id: the identifier of the task to force delete
+        :param task_id: the identifier of the task to force delete
         '''
         try:
-            self._force_delete_recurrent_task(id)
+            self._force_delete_recurrent_task(task_id)
         except errors.InvalidOperation:
             raise
-        return id
+        return task_id
 
     def _get_tasks(self):
         tasks = []
@@ -360,11 +472,11 @@ class CerberusManager(service.Service):
             tasks.append(thread)
         return tasks
 
-    def _get_task(self, id):
-        task = self._get_unique_task(id)
-        task_ = self._get_recurrent_task(id)
+    def _get_task(self, task_id):
+        task = self._get_unique_task(task_id)
+        task_ = self._get_recurrent_task(task_id)
         if (task is None and task_ is None):
-            raise errors.TaskNotFound(id)
+            raise errors.TaskNotFound(task_id)
         return task if task is not None else task_
 
     def get_tasks(self, ctx):
@@ -381,9 +493,9 @@ class CerberusManager(service.Service):
                                cls=base.ThreadEncoder))
         return tasks_
 
-    def get_task(self, ctx, id):
+    def get_task(self, ctx, task_id):
         try:
-            task = self._get_task(id)
+            task = self._get_task(task_id)
         except errors.InvalidOperation:
             raise
         if isinstance(task, loopingcall.FixedIntervalLoopingCall):
@@ -393,34 +505,37 @@ class CerberusManager(service.Service):
             return json.dumps(task,
                               cls=base.ThreadEncoder)
 
-    def _restart_recurrent_task(self, id):
+    def _restart_recurrent_task(self, task_id):
         """
         Restart the task
-        :param id: the identifier of the task to restart
+        :param task_id: the identifier of the task to restart
         :return:
         """
-        recurrent_task = self._get_recurrent_task(id)
+        recurrent_task = self._get_recurrent_task(task_id)
         if (recurrent_task is None):
-            raise errors.TaskRestartNotAllowed(str(id))
+            raise errors.TaskRestartNotAllowed(str(task_id))
         period = recurrent_task.kw.get("task_period", None)
         if recurrent_task._running is True:
-            raise errors.TaskRestartNotPossible(str(id))
+            raise errors.TaskRestartNotPossible(str(task_id))
         else:
             try:
                 recurrent_task.start(int(period))
-            except ValueError as e:
+                if recurrent_task.kw.get('persistent', '') == 'True':
+                    db_api.update_state_task(task_id, True)
+            except Exception as e:
                 LOG.exception(e)
+                raise e
 
-    def restart_recurrent_task(self, ctx, id):
+    def restart_recurrent_task(self, ctx, task_id):
         '''
         This method is designed to be called by an rpc client.
         E.g: Cerberus-api
         Restart a recurrent task after it's being stopped
         :param ctx: a request context dict supplied by client
-        :param id: the identifier of the task to restart
+        :param task_id: the identifier of the task to restart
         '''
         try:
-            self._restart_recurrent_task(id)
+            self._restart_recurrent_task(task_id)
         except errors.InvalidOperation:
             raise
-        return id
+        return task_id

@@ -94,7 +94,7 @@ class FixedIntervalLoopingCall(LoopingCallBase):
 
         self.done = done
 
-        self.gt = greenthread.spawn(_inner)
+        greenthread.spawn_n(_inner)
         return self.done
 
 

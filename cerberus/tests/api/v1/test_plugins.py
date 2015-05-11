@@ -55,13 +55,19 @@ class TestPlugins(base.TestApiBase):
                 name=PLUGIN_NAME_2
             )
         )
+        self.fake_rpc_plugin = db_utils.get_rpc_plugin()
+        self.fake_rpc_plugins = []
+        self.fake_rpc_plugins.append(self.fake_rpc_plugin)
+        self.fake_rpc_plugins.append(db_utils.get_rpc_plugin(
+            name=PLUGIN_NAME_2
+        ))
         self.plugins_path = '/plugins'
         self.plugin_path = '/plugins/%s' % self.fake_plugin['uuid']
 
     def test_list(self):
 
         rpc_plugins = []
-        for plugin in self.fake_plugins:
+        for plugin in self.fake_rpc_plugins:
             rpc_plugins.append(json.dumps(plugin))
 
         messaging.RPCClient.call = mock.MagicMock(
@@ -70,16 +76,19 @@ class TestPlugins(base.TestApiBase):
             return_value=self.fake_plugins_model)
 
         plugins = self.get_json(self.plugins_path)
-        self.assertEqual({'plugins': self.fake_plugins},
-                         plugins)
+        expecting_sorted = sorted({'plugins': self.fake_plugins}['plugins'],
+                                  key=lambda k: k['name'])
+        actual_sorted = sorted(plugins['plugins'], key=lambda k: k['name'])
+        self.assertEqual(expecting_sorted,
+                         actual_sorted)
 
     def test_get(self):
-        rpc_plugin = json.dumps(self.fake_plugin)
+        rpc_plugin = json.dumps(self.fake_rpc_plugin)
         messaging.RPCClient.call = mock.MagicMock(return_value=rpc_plugin)
         db.plugin_info_get_from_uuid = mock.MagicMock(
             return_value=self.fake_plugin_model)
         plugin = self.get_json(self.plugin_path)
-        self.assertEqual({'plugin': self.fake_plugin}, plugin)
+        self.assertEqual(self.fake_plugin, plugin)
 
     def test_list_plugins_remote_error(self):
         messaging.RPCClient.call = mock.MagicMock(

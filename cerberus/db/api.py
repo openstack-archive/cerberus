@@ -51,16 +51,6 @@ def db_sync(engine, version=None):
     return IMPL.db_sync(engine, version=version)
 
 
-def alert_create(values):
-    """Create an instance from the values dictionary."""
-    return IMPL.alert_create(values)
-
-
-def alert_get_all():
-    """Get all alerts"""
-    return IMPL.alert_get_all()
-
-
 def security_report_create(values):
     """Create an instance from the values dictionary."""
     return IMPL.security_report_create(values)
@@ -69,6 +59,11 @@ def security_report_create(values):
 def security_report_update_last_report_date(id, date):
     """Create an instance from the values dictionary."""
     return IMPL.security_report_update_last_report_date(id, date)
+
+
+def security_report_update_ticket_id(id, ticket_id):
+    """Create an instance from the values dictionary."""
+    return IMPL.security_report_update_ticket_id(id, ticket_id)
 
 
 def security_report_get_all(project_id=None):
@@ -113,3 +108,24 @@ def security_alarm_get_all():
 
 def security_alarm_get(id):
     return IMPL.security_alarm_get(id)
+
+
+def security_alarm_update_ticket_id(alarm_id, ticket_id):
+    """Create an instance from the values dictionary."""
+    return IMPL.security_alarm_update_ticket_id(alarm_id, ticket_id)
+
+
+def create_task(values):
+    return IMPL.create_task(values)
+
+
+def delete_task(id):
+    IMPL.delete_task(id)
+
+
+def update_state_task(id, running):
+    IMPL.update_state_task(id, running)
+
+
+def get_all_tasks():
+    return IMPL.get_all_tasks()

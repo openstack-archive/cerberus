@@ -13,14 +13,19 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 #
+#
+
 
 import json
 import pecan
 from webob import exc
+from wsme import types as wtypes
+import wsmeext.pecan as wsme_pecan
 
 from oslo import messaging
 
 from cerberus.api.v1.controllers import base
+from cerberus.api.v1.datamodels import plugin as plugin_models
 from cerberus.common import errors
 from cerberus import db
 from cerberus.db.sqlalchemy import models
@@ -49,36 +54,44 @@ class PluginsController(base.BaseController):
         except Exception as e:
             LOG.exception(e)
             raise
-        plugins_info = []
+        plugins_info = {}
         for plugin_info in db_plugins_info:
-            plugins_info.append(models.PluginInfoJsonSerializer().
-                                serialize(plugin_info))
-        plugins_full_info = []
-        for plugin in plugins:
-            for plugin_info in plugins_info:
-                if (plugin.get('name') == plugin_info.get('name')):
-                    plugins_full_info.append(dict(plugin.items()
-                                             + plugin_info.items()))
-        return plugins_full_info
+            plugins_info[plugin_info.name] = models.\
+                PluginInfoJsonSerializer().serialize(plugin_info)
+
+        for key in plugins:
+            if key in plugins_info:
+                if isinstance(plugins_info[key], dict) and isinstance(
+                        plugins[key], dict):
+                    plugins_info[key].update(plugins[key])
+
+        pluginResources = []
+
+        for k, v in plugins_info.items():
+            pluginResources.append(
+                plugin_models.PluginResource(v))
+
+        return plugin_models.PluginResourceCollection(plugins=pluginResources)
 
     def _plugins(self):
-        """ Get a list of plugins loaded by Cerberus Manager """
+        """ Get a dict of plugins loaded by Cerberus Manager """
         ctx = pecan.request.context.to_dict()
         try:
             plugins = self.client.call(ctx, 'get_plugins')
         except messaging.RemoteError as e:
             LOG.exception(e)
             raise
-        plugins_ = []
+        plugins_ = {}
         for plugin in plugins:
             plugin_ = json.loads(plugin)
-            plugins_.append(plugin_)
+            plugins_[plugin_['name']] = plugin_
         return plugins_
 
-    @pecan.expose("json")
+    @wsme_pecan.wsexpose(plugin_models.PluginResourceCollection)
     def get_all(self):
         """ Get a list of plugins loaded by Cerberus manager
-        :return: a list of plugins loaded by Cerberus manager
+        :return: PluginResourceCollection : a list of plugins loaded by
+        Cerberus manager
         :raises:
             HTTPServiceUnavailable: an error occurred in Cerberus Manager or
             the service is unavailable
@@ -93,7 +106,7 @@ class PluginsController(base.BaseController):
         except Exception as e:
             LOG.exception(e)
             raise exc.HTTPNotFound()
-        return {'plugins': plugins}
+        return plugins
 
     def get_plugin(self, uuid):
         """ Get information about plugin loaded by Cerberus"""
@@ -108,10 +121,12 @@ class PluginsController(base.BaseController):
             db_plugin_info = db.plugin_info_get_from_uuid(uuid)
             plugin_info = models.PluginInfoJsonSerializer().\
                 serialize(db_plugin_info)
+
+            plugin_info.update(plugin)
         except Exception as e:
             LOG.exception(e)
             raise
-        return dict(plugin_info.items() + plugin.items())
+        return plugin_models.PluginResource(plugin_info)
 
     def _plugin(self, uuid):
         """ Get a specific plugin thanks to its identifier """
@@ -127,7 +142,8 @@ class PluginsController(base.BaseController):
             raise errors.PluginNotFound(uuid)
         return json.loads(plugin)
 
-    @pecan.expose("json")
+    @wsme_pecan.wsexpose(plugin_models.PluginResource,
+                         wtypes.text)
     def get_one(self, uuid):
         """ Get details of a specific plugin whose identifier is uuid
         :param uuid: the identifier of the plugin
@@ -146,4 +162,4 @@ class PluginsController(base.BaseController):
         except Exception as e:
             LOG.exception(e)
             raise exc.HTTPNotFound()
-        return {'plugin': plugin}
+        return plugin

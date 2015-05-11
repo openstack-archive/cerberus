@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2014 EUROGICIEL
+# Copyright (c) 2015 EUROGICIEL
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -13,11 +13,20 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 #
-import eventlet
 
-eventlet.monkey_patch()
+from cerberus.common import threadgroup
+from cerberus.openstack.common import service
 
-import pbr.version
 
-__version__ = pbr.version.VersionInfo(
-    'cerberus').version_string()
+class CerberusService(service.Service):
+
+    def __init__(self, threads=1000):
+        super(CerberusService, self).__init__(threads)
+        self.tg = threadgroup.CerberusThreadGroup(threads)
+
+
+class CerberusServices(service.Services):
+
+    def __init__(self):
+        super(CerberusServices, self).__init__()
+        self.tg = threadgroup.CerberusThreadGroup()

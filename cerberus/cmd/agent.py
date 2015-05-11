@@ -14,7 +14,6 @@
 #    limitations under the License.
 #
 
-import eventlet
 import sys
 
 from oslo.config import cfg
@@ -23,9 +22,6 @@ from cerberus.common import config
 from cerberus import manager
 from cerberus.openstack.common import log
 from cerberus.openstack.common import service
-
-
-eventlet.monkey_patch()
 
 LOG = log.getLogger(__name__)
 

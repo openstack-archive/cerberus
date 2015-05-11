@@ -142,13 +142,25 @@ class CerberusException(Exception):
         return self.args[0]
 
 
-class AlertExists(CerberusException):
+class DBException(CerberusException):
+    msg_fmt = _("Database error.")
+
+
+class AlertExists(DBException):
     msg_fmt = _("Alert %(alert_id)s already exists.")
 
 
-class ReportExists(CerberusException):
+class ReportExists(DBException):
     msg_fmt = _("Report %(report_id)s already exists.")
 
 
-class PluginInfoExists(CerberusException):
+class PluginInfoExists(DBException):
     msg_fmt = _("Plugin info %(id)s already exists.")
+
+
+class AlarmExists(DBException):
+    msg_fmt = _("Alarm %(alarm_id)s already exists.")
+
+
+class TaskExists(DBException):
+    msg_fmt = _("Task %(task_id)s already exists.")

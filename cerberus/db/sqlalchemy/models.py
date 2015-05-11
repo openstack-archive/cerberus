@@ -18,7 +18,7 @@
 SQLAlchemy models for cerberus data.
 """
 
-from sqlalchemy import Column, String, Integer, DateTime, Float, Text
+from sqlalchemy import Boolean, Column, String, Integer, DateTime, Float, Text
 from sqlalchemy.ext.declarative import declarative_base
 
 from oslo.config import cfg
@@ -44,36 +44,6 @@ class CerberusBase(models.SoftDeleteMixin,
             session = api.get_session()
 
         super(CerberusBase, self).save(session=session)
-
-
-class Alert(BASE, CerberusBase):
-    """Security alert"""
-
-    __tablename__ = 'alert'
-    __table_args__ = ()
-
-    id = Column(Integer, primary_key=True)
-    title = Column(String(255))
-    status = Column(String(255))
-    severity = Column(Integer)
-    acknowledged_at = Column(DateTime)
-    plugin_id = Column(String(255))
-    description = Column(String(255))
-    resource_id = Column(String(255))
-    issue_link = Column(String(255))
-
-
-class AlertJsonSerializer(serialize.JsonSerializer):
-    """Alert serializer"""
-
-    __attributes__ = ['id', 'title', 'description', 'status', 'severity',
-                      'created_at', 'deleted_at', 'updated_at',
-                      'acknowledged_at', 'plugin_id', 'resource_id',
-                      'issue_link', 'deleted']
-    __required__ = ['id', 'title']
-    __attribute_serializer__ = dict(created_at='date', deleted_at='date',
-                                    updated_at='date', acknowledged_at='date')
-    __object_class__ = Alert
 
 
 class PluginInfo(BASE, CerberusBase):
@@ -122,6 +92,7 @@ class SecurityReport(BASE, CerberusBase):
     vulnerabilities = Column(Text)
     vulnerabilities_number = Column(Integer)
     last_report_date = Column(DateTime)
+    ticket_id = Column(String(255))
 
 
 class SecurityReportJsonSerializer(serialize.JsonSerializer):
@@ -130,8 +101,9 @@ class SecurityReportJsonSerializer(serialize.JsonSerializer):
     __attributes__ = ['id', 'title', 'description', 'plugin_id', 'report_id',
                       'component_id', 'component_type', 'component_name',
                       'project_id', 'security_rating', 'vulnerabilities',
-                      'vulnerabilities_number', 'last_report_date', 'deleted',
-                      'created_at', 'deleted_at', 'updated_at']
+                      'vulnerabilities_number', 'last_report_date',
+                      'ticket_id', 'deleted', 'created_at', 'deleted_at',
+                      'updated_at']
     __required__ = ['id', 'title', 'component_id']
     __attribute_serializer__ = dict(created_at='date', deleted_at='date',
                                     acknowledged_at='date')
@@ -152,20 +124,49 @@ class SecurityAlarm(BASE, CerberusBase):
     timestamp = Column(DateTime)
     status = Column(String(255))
     severity = Column(String(255))
+    project_id = Column(String(255))
     component_id = Column(String(255))
     summary = Column(String(255))
     description = Column(String(255))
+    ticket_id = Column(String(255))
 
 
 class SecurityAlarmJsonSerializer(serialize.JsonSerializer):
     """Security report serializer"""
 
     __attributes__ = ['id', 'plugin_id', 'alarm_id', 'timestamp', 'status',
-                      'severity', 'component_id', 'summary',
-                      'project_id', 'security_rating', 'vulnerabilities',
-                      'description', 'deleted', 'created_at', 'deleted_at',
-                      'updated_at']
+                      'severity', 'project_id', 'component_id', 'summary',
+                      'description', 'ticket_id', 'deleted', 'created_at',
+                      'deleted_at', 'updated_at']
     __required__ = ['id', 'title']
     __attribute_serializer__ = dict(created_at='date', deleted_at='date',
                                     acknowledged_at='date')
     __object_class__ = SecurityAlarm
+
+
+class Task(BASE, CerberusBase):
+    """Tasks for security purposes (e.g: daily scans...)
+    """
+    __tablename__ = 'task'
+    __table_args__ = ()
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255))
+    method = Column(String(255))
+    type = Column(String(255))
+    period = Column(Integer)
+    plugin_id = Column(String(255))
+    running = Column(Boolean)
+    uuid = Column(String(255))
+
+
+class TaskJsonSerializer(serialize.JsonSerializer):
+    """Security report serializer"""
+
+    __attributes__ = ['id', 'name', 'method', 'type', 'period',
+                      'plugin_id', 'running', 'uuid', 'deleted', 'created_at',
+                      'deleted_at', 'updated_at']
+    __required__ = ['id', ]
+    __attribute_serializer__ = dict(created_at='date', deleted_at='date',
+                                    acknowledged_at='date')
+    __object_class__ = Task

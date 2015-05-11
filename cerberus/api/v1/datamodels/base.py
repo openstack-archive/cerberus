@@ -1,5 +1,5 @@
 #
-#   Copyright (c) 2014 EUROGICIEL
+# Copyright (c) 2015 EUROGICIEL
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -13,11 +13,14 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 #
-import eventlet
+import wsme
+from wsme import types as wtypes
 
-eventlet.monkey_patch()
 
-import pbr.version
+class Base(wtypes.Base):
 
-__version__ = pbr.version.VersionInfo(
-    'cerberus').version_string()
+    def as_dict_from_keys(self, keys):
+        return dict((k, getattr(self, k))
+                    for k in keys
+                    if hasattr(self, k) and
+                    getattr(self, k) != wsme.Unset)

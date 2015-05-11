@@ -14,7 +14,6 @@
 #    limitations under the License.
 #
 
-import sqlalchemy
 import sys
 import threading
 
@@ -108,7 +107,7 @@ def _security_report_get_all(project_id=None):
                 filter(models.SecurityReport.project_id == project_id).all()
     except Exception as e:
         LOG.exception(e)
-        raise e
+        raise exception.DBException()
 
 
 def _security_report_get(id):
@@ -131,9 +130,12 @@ def security_report_create(values):
     security_report_ref.update(values)
     try:
         security_report_ref.save()
-    except sqlalchemy.exc.OperationalError as e:
+    except db_exc.DBDuplicateEntry as e:
         LOG.exception(e)
-        raise db_exc.ColumnError
+        raise exception.ReportExists(id=values['id'])
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
     return security_report_ref
 
 
@@ -145,9 +147,22 @@ def security_report_update_last_report_date(id, date):
     report.last_report_date = date
     try:
         report.save(session)
-    except sqlalchemy.exc.OperationalError as e:
+    except Exception as e:
         LOG.exception(e)
-        raise db_exc.ColumnError
+        raise exception.DBException()
+
+
+def security_report_update_ticket_id(id, ticket_id):
+    session = get_session()
+    report = model_query(models.SecurityReport, read_deleted="no",
+                         session=session).filter(models.SecurityReport.id
+                                                 == id).first()
+    report.ticket_id = ticket_id
+    try:
+        report.save(session)
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
 
 
 def security_report_get_all(project_id=None):
@@ -218,9 +233,9 @@ def plugin_version_update(id, version):
     plugin.version = version
     try:
         plugin.save(session)
-    except sqlalchemy.exc.OperationalError as e:
+    except Exception as e:
         LOG.exception(e)
-        raise db_exc.ColumnError
+        raise exception.DBException()
 
 
 def db_sync(engine, version=None):
@@ -236,20 +251,16 @@ def db_version(engine):
 def _security_alarm_get_all():
 
     session = get_session()
-    try:
-        return model_query(models.SecurityAlarm, read_deleted="no",
-                           session=session).all()
-    except Exception as e:
-        LOG.exception(e)
-        raise e
+    return model_query(models.SecurityAlarm, read_deleted="no",
+                       session=session).all()
 
 
-def _security_alarm_get(id):
+def _security_alarm_get(alarm_id):
 
     session = get_session()
     return model_query(models.SecurityAlarm, read_deleted="no",
                        session=session).filter(models.SecurityAlarm.
-                                               id == id).first()
+                                               alarm_id == alarm_id).first()
 
 
 def security_alarm_create(values):
@@ -257,9 +268,8 @@ def security_alarm_create(values):
     security_alarm_ref.update(values)
     try:
         security_alarm_ref.save()
-    except sqlalchemy.exc.OperationalError as e:
-        LOG.exception(e)
-        raise db_exc.ColumnError
+    except db_exc.DBDuplicateEntry:
+        raise exception.AlarmExists(id=values['id'])
     return security_alarm_ref
 
 
@@ -269,3 +279,51 @@ def security_alarm_get_all():
 
 def security_alarm_get(id):
     return _security_alarm_get(id)
+
+
+def security_alarm_update_ticket_id(alarm_id, ticket_id):
+    session = get_session()
+    alarm = model_query(models.SecurityAlarm, read_deleted="no",
+                        session=session).filter(models.SecurityAlarm.alarm_id
+                                                == alarm_id).first()
+    alarm.ticket_id = ticket_id
+    try:
+        alarm.save(session)
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
+
+
+def create_task(values):
+    task_ref = models.Task()
+    task_ref.update(values)
+    try:
+        task_ref.save()
+    except db_exc.DBDuplicateEntry:
+        raise exception.TaskExists(id=values['uuid'])
+    return task_ref
+
+
+def delete_task(id):
+    session = get_session()
+    task = model_query(models.Task, read_deleted="no",
+                       session=session).filter_by(uuid=id)
+    task.delete()
+
+
+def update_state_task(id, running):
+    session = get_session()
+    task = model_query(models.Task, read_deleted="no",
+                       session=session).filter_by(uuid=id).first()
+    task.running = running
+    try:
+        task.save(session)
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
+
+
+def get_all_tasks():
+    session = get_session()
+    return model_query(models.Task, read_deleted="no",
+                       session=session).all()

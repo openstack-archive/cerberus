@@ -20,21 +20,24 @@ test_cerberus manager
 
 Tests for `cerberus` module.
 """
-import json
 
 from eventlet import greenpool
+import json
 import mock
-from oslo import messaging
 import pkg_resources
+import uuid
+
+from oslo import messaging
 from stevedore import extension
 
 from cerberus.common import errors
-from cerberus.db.sqlalchemy import api
+from cerberus.common import loopingcall
+from cerberus.common import threadgroup
+from cerberus.db.sqlalchemy import api as db_api
 from cerberus import manager
-from cerberus.openstack.common import loopingcall
-from cerberus.openstack.common import threadgroup
 from cerberus.plugins import base as base_plugin
 from cerberus.tests import base
+from cerberus.tests.db import utils as db_utils
 
 
 PLUGIN_UUID = 'UUID'
@@ -87,6 +90,9 @@ class TestCerberusManager(base.TestBase):
         self.db_plugin_info = DbPluginInfo(1, PLUGIN_UUID)
         self.manager = manager.CerberusManager()
         self.manager.cerberus_manager = self.extension_mgr
+        self.fake_db_task = db_utils.get_recurrent_task_model(
+            plugin_id=PLUGIN_UUID
+        )
 
     def test_register_plugin(self):
         with mock.patch('cerberus.db.sqlalchemy.api.plugin_info_create') \
@@ -101,7 +107,7 @@ class TestCerberusManager(base.TestBase):
         with mock.patch('cerberus.db.sqlalchemy.api.plugin_info_get') \
                 as MockClass:
             MockClass.return_value = DbPluginInfo(1, PLUGIN_UUID)
-            api.plugin_version_update = mock.MagicMock()
+            db_api.plugin_version_update = mock.MagicMock()
             self.manager._register_plugin(
                 self.manager.cerberus_manager['plugin'])
             self.assertEqual(self.db_plugin_info.uuid,
@@ -110,6 +116,7 @@ class TestCerberusManager(base.TestBase):
     @mock.patch.object(messaging.MessageHandlingServer, 'start')
     def test_start(self, rpc_start):
         manager.CerberusManager._register_plugin = mock.MagicMock()
+        manager.CerberusManager.add_stored_tasks = mock.MagicMock()
         mgr = manager.CerberusManager()
         mgr.start()
         rpc_start.assert_called_with()
@@ -133,7 +140,7 @@ class TestCerberusManager(base.TestBase):
             self.manager.cerberus_manager['plugin'].obj.fake_function,
             name="fake")
 
-    @mock.patch.object(loopingcall.FixedIntervalLoopingCall, "start")
+    @mock.patch.object(loopingcall.CerberusFixedIntervalLoopingCall, "start")
     def test_add_recurrent_task_without_delay(self, mock):
         self.manager._add_recurrent_task(
             self.manager.cerberus_manager['plugin'].obj.fake_function,
@@ -141,7 +148,7 @@ class TestCerberusManager(base.TestBase):
         assert(len(self.manager.tg.timers) == 1)
         mock.assert_called_with(initial_delay=None, interval=15)
 
-    @mock.patch.object(loopingcall.FixedIntervalLoopingCall, "start")
+    @mock.patch.object(loopingcall.CerberusFixedIntervalLoopingCall, "start")
     def test_add_recurrent_task_with_delay(self, mock):
         self.manager._add_recurrent_task(
             self.manager.cerberus_manager['plugin'].obj.fake_function,
@@ -150,43 +157,65 @@ class TestCerberusManager(base.TestBase):
         assert(len(self.manager.tg.timers) == 1)
         mock.assert_called_with(initial_delay=200, interval=15)
 
-    @mock.patch.object(greenpool.GreenPool, "spawn")
-    def test_add_task(self, mock):
-        ctx = {"some": "context"}
-        self.manager.add_task(ctx, PLUGIN_UUID, 'fake_function')
-        assert(len(self.manager.tg.threads) == 1)
-        mock.assert_called_with(self.manager.cerberus_manager['plugin'].obj.
-                                fake_function,
-                                plugin_id=PLUGIN_UUID,
-                                task_id=1)
+    @mock.patch.object(db_api, "create_task")
+    def test_store_task(self, db_mock):
+        task = db_utils.get_recurrent_task_object(
+            persistent='True', task_name='task_name', task_type='recurrent',
+            task_period=5, plugin_id='490cc562-9e60-46a7-9b5f-c7619aca2e07',
+            task_id='500cc562-5c50-89t4-5fc8-c7619aca3n29')
+        self.manager._store_task(task, 'method_')
+        db_mock.assert_called_with(
+            {'name': 'task_name',
+             'method': 'method_',
+             'type': 'recurrent',
+             'period': 5,
+             'plugin_id': '490cc562-9e60-46a7-9b5f-c7619aca2e07',
+             'running': True,
+             'uuid': '500cc562-5c50-89t4-5fc8-c7619aca3n29'})
 
     @mock.patch.object(greenpool.GreenPool, "spawn")
-    def test_add_task_incorrect_task_type(self, mock):
+    @mock.patch.object(uuid, "uuid4", return_value=1)
+    def test_create_task(self, uuid_mock, th_mock):
         ctx = {"some": "context"}
-        self.manager.add_task(ctx, PLUGIN_UUID, 'fake_function',
-                              task_type='INCORRECT')
+        db_api.create_task = mock.MagicMock(return_value=self.fake_db_task)
+        self.manager.create_task(ctx, PLUGIN_UUID, 'fake_function')
         assert(len(self.manager.tg.threads) == 1)
-        mock.assert_called_with(self.manager.cerberus_manager[
-                                'plugin'].obj.fake_function,
-                                plugin_id=PLUGIN_UUID,
-                                task_type='INCORRECT',
-                                task_id=1)
+        th_mock.assert_called_with(
+            self.manager.cerberus_manager['plugin'].obj.fake_function,
+            plugin_id=PLUGIN_UUID,
+            task_id='1')
 
-    @mock.patch.object(loopingcall.FixedIntervalLoopingCall, "start")
-    def test_add_recurrent_task_with_interval(self, mock):
+    @mock.patch.object(greenpool.GreenPool, "spawn")
+    @mock.patch.object(uuid, "uuid4", return_value=1)
+    def test_create_task_incorrect_task_type(self, uuid_mock, th_mock):
         ctx = {"some": "context"}
-        self.manager.add_task(ctx, PLUGIN_UUID, 'fake_function',
-                              task_type='recurrent', task_period=5)
+        db_api.create_task = mock.MagicMock(return_value=self.fake_db_task)
+        self.manager.create_task(ctx, PLUGIN_UUID, 'fake_function',
+                                 task_type='INCORRECT')
+        assert(len(self.manager.tg.threads) == 1)
+        th_mock.assert_called_with(
+            self.manager.cerberus_manager['plugin'].obj.fake_function,
+            plugin_id=PLUGIN_UUID,
+            task_type='INCORRECT',
+            task_id='1')
+
+    @mock.patch.object(loopingcall.CerberusFixedIntervalLoopingCall, "start")
+    def test_create_recurrent_task_with_interval(self, mock):
+        ctx = {"some": "context"}
+        db_api.create_task = mock.MagicMock(return_value=self.fake_db_task)
+        self.manager.create_task(ctx, PLUGIN_UUID, 'fake_function',
+                                 task_type='recurrent', task_period=5)
         assert(len(self.manager.tg.timers) == 1)
         mock.assert_called_with(initial_delay=None, interval=5)
 
     def test_get_recurrent_task(self):
-        task_id = self.manager._add_recurrent_task(
+        self.manager._add_recurrent_task(
             self.manager.cerberus_manager['plugin'].obj.fake_function,
-            15)
-        recurrent_task = self.manager._get_recurrent_task(task_id)
+            15,
+            task_id=1)
+        recurrent_task = self.manager._get_recurrent_task(1)
         assert(isinstance(recurrent_task,
-                          loopingcall.FixedIntervalLoopingCall))
+                          loopingcall.CerberusFixedIntervalLoopingCall))
 
     def test_get_recurrent_task_wrong_id(self):
         task_id = 1
@@ -251,9 +280,10 @@ class TestCerberusManager(base.TestBase):
             task_id=unique_task_id)
         tasks = self.manager._get_tasks()
         self.assertTrue(len(tasks) == 2)
-        self.assertTrue(isinstance(tasks[0],
-                                   loopingcall.FixedIntervalLoopingCall))
-        self.assertTrue(isinstance(tasks[1], threadgroup.Thread))
+        self.assertTrue(
+            isinstance(tasks[0],
+                       loopingcall.CerberusFixedIntervalLoopingCall))
+        self.assertTrue(isinstance(tasks[1], threadgroup.CerberusThread))
 
     def test_get_tasks_(self):
         recurrent_task_id = 1
@@ -277,7 +307,8 @@ class TestCerberusManager(base.TestBase):
             task_period,
             task_id=task_id)
         task = self.manager._get_task(task_id)
-        self.assertTrue(isinstance(task, loopingcall.FixedIntervalLoopingCall))
+        self.assertTrue(
+            isinstance(task, loopingcall.CerberusFixedIntervalLoopingCall))
 
     def test_get_task_unique(self):
         task_id = 1
@@ -285,7 +316,7 @@ class TestCerberusManager(base.TestBase):
             self.manager.cerberus_manager['plugin'].obj.fake_function,
             task_id=task_id)
         task = self.manager._get_task(task_id)
-        self.assertTrue(isinstance(task, threadgroup.Thread))
+        self.assertTrue(isinstance(task, threadgroup.CerberusThread))
 
     def test_get_task(self):
         recurrent_task_id = 1
@@ -305,7 +336,7 @@ class TestCerberusManager(base.TestBase):
             task_name=unique_task_name)
         task = self.manager.get_task({'some': 'context'}, 1)
         self.assertTrue(json.loads(task).get('name') == recurrent_task_name)
-        self.assertTrue(json.loads(task).get('id') == recurrent_task_id)
+        self.assertTrue(int(json.loads(task).get('id')) == recurrent_task_id)
         task_2 = self.manager.get_task({'some': 'context'}, 2)
         self.assertTrue(json.loads(task_2).get('name') == unique_task_name)
         self.assertTrue(json.loads(task_2).get('id') == unique_task_id)
@@ -320,6 +351,7 @@ class TestCerberusManager(base.TestBase):
         assert(len(self.manager.tg.threads) == 0)
 
     def test_stop_recurrent_task(self):
+        db_api.update_state_task = mock.MagicMock()
         task_id = 1
         self.manager._add_recurrent_task(
             self.manager.cerberus_manager['plugin'].obj.fake_function,
@@ -330,6 +362,7 @@ class TestCerberusManager(base.TestBase):
         assert(self.manager.tg.timers[0]._running is False)
 
     def test_stop_task_recurrent(self):
+        db_api.update_state_task = mock.MagicMock()
         recurrent_task_id = 1
         unique_task_id = 2
         task_period = 5
@@ -359,6 +392,7 @@ class TestCerberusManager(base.TestBase):
 
     def test_delete_recurrent_task(self):
         ctx = {"some": "context"}
+        db_api.delete_task = mock.MagicMock()
         task_id = 1
         self.manager._add_recurrent_task(
             self.manager.cerberus_manager['plugin'].obj.fake_function,
@@ -387,6 +421,7 @@ class TestCerberusManager(base.TestBase):
 
     def test_restart_recurrent_task(self):
         ctxt = {'some': 'context'}
+        db_api.update_state_task = mock.MagicMock()
         task_id = 1
         task_period = 5
         self.manager._add_recurrent_task(
@@ -419,16 +454,16 @@ class FaultyTestCerberusManager(base.TestBaseFaulty):
         self.manager = manager.CerberusManager()
         self.manager.cerberus_manager = self.extension_mgr
 
-    def test_add_task_wrong_plugin_id(self):
+    def test_create_task_wrong_plugin_id(self):
         ctx = {"some": "context"}
-        self.assertRaises(errors.PluginNotFound, self.manager.add_task,
+        self.assertRaises(errors.PluginNotFound, self.manager.create_task,
                           ctx, 'WRONG_UUID', 'fake_function')
         assert(len(self.manager.tg.threads) == 0)
 
-    def test_add_task_incorrect_period(self):
+    def test_create_task_incorrect_period(self):
         ctx = {"some": "context"}
         self.assertRaises(errors.TaskPeriodNotInteger,
-                          self.manager.add_task,
+                          self.manager.create_task,
                           ctx,
                           PLUGIN_UUID,
                           'fake_function',
@@ -436,43 +471,43 @@ class FaultyTestCerberusManager(base.TestBaseFaulty):
                           task_period='NOT_INTEGER')
         assert(len(self.manager.tg.threads) == 0)
 
-    def test_add_task_wrong_plugin_method(self):
+    def test_create_task_wrong_plugin_method(self):
         ctx = {"some": "context"}
         self.assertRaises(errors.MethodNotCallable,
-                          self.manager.add_task, ctx, PLUGIN_UUID, 'fake')
+                          self.manager.create_task, ctx, PLUGIN_UUID, 'fake')
         assert(len(self.manager.tg.threads) == 0)
 
-    def test_add_task_method_not_as_string(self):
+    def test_create_task_method_not_as_string(self):
         ctx = {"some": "context"}
         self.assertRaises(errors.MethodNotString,
-                          self.manager.add_task,
+                          self.manager.create_task,
                           ctx,
                           PLUGIN_UUID,
                           self.manager.cerberus_manager[
                               'plugin'].obj.fake_function)
         assert(len(self.manager.tg.threads) == 0)
 
-    def test_add_recurrent_task_without_period(self):
+    def test_create_recurrent_task_without_period(self):
         ctx = {"some": "context"}
         self.assertRaises(errors.TaskPeriodNotInteger,
-                          self.manager.add_task,
+                          self.manager.create_task,
                           ctx,
                           PLUGIN_UUID,
                           'fake_function',
                           task_type='recurrent')
         assert(len(self.manager.tg.timers) == 0)
 
-    def test_add_recurrent_task_wrong_plugin_method(self):
+    def test_create_recurrent_task_wrong_plugin_method(self):
         ctx = {"some": "context"}
         self.assertRaises(errors.MethodNotCallable,
-                          self.manager.add_task, ctx, PLUGIN_UUID, 'fake',
+                          self.manager.create_task, ctx, PLUGIN_UUID, 'fake',
                           task_type='recurrent', task_period=5)
         assert(len(self.manager.tg.timers) == 0)
 
-    def test_add_recurrent_task_method_not_as_string(self):
+    def test_create_recurrent_task_method_not_as_string(self):
         ctx = {"some": "context"}
         self.assertRaises(errors.MethodNotString,
-                          self.manager.add_task,
+                          self.manager.create_task,
                           ctx,
                           PLUGIN_UUID,
                           self.manager.cerberus_manager[
@@ -552,6 +587,7 @@ class FaultyTestCerberusManager(base.TestBaseFaulty):
 
     def test_restart_recurrent_task_wrong_id(self):
         ctxt = {"some": "ctx"}
+        db_api.update_state_task = mock.MagicMock()
         task_id = 1
         self.manager._add_recurrent_task(
             self.manager.cerberus_manager['plugin'].obj.fake_function,

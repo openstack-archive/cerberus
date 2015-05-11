@@ -21,17 +21,6 @@ from cerberus import db
 from cerberus.tests.api import base
 from cerberus.tests.db import utils as db_utils
 
-
-def get_tasks():
-    tasks = []
-    return tasks
-
-
-def get_task():
-    task = {}
-    return task
-
-
 SECURITY_REPORT_ID = 'abc123'
 SECURITY_REPORT_ID_2 = 'xyz789'
 
@@ -68,7 +57,7 @@ class TestSecurityReports(base.TestApiBase):
         db.security_report_get = mock.MagicMock(
             return_value=self.fake_security_report_model)
         security_report = self.get_json(self.security_report_path)
-        self.assertEqual({'security_report': self.fake_security_report},
+        self.assertEqual(self.fake_security_report,
                          security_report)
 
     def test_list(self):
@@ -80,6 +69,11 @@ class TestSecurityReports(base.TestApiBase):
 
         self.assertEqual({'security_reports': self.fake_security_reports},
                          security_reports)
+
+    def test_update_sr_ticket_id(self):
+        db.security_report_update_ticket_id = mock.MagicMock()
+        res = self.put_json(self.security_report_path + '/tickets/1', None)
+        self.assertEqual(200, res.status_code)
 
     def test_get_sreports_db_error(self):
         db.security_report_get_all = mock.MagicMock(

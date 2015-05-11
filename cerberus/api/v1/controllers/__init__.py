@@ -16,8 +16,9 @@
 
 from pecan import rest
 
-from cerberus.api.v1.controllers import alerts as alerts_api
 from cerberus.api.v1.controllers import plugins as plugins_api
+from cerberus.api.v1.controllers import security_alarms as \
+    security_alarms_api
 from cerberus.api.v1.controllers import security_reports as \
     security_reports_api
 from cerberus.api.v1.controllers import tasks as tasks_api
@@ -25,7 +26,7 @@ from cerberus.api.v1.controllers import tasks as tasks_api
 
 class V1Controller(rest.RestController):
     """API version 1 controller. """
-    alerts = alerts_api.AlertsController()
     plugins = plugins_api.PluginsController()
+    security_alarms = security_alarms_api.SecurityAlarmsController()
     security_reports = security_reports_api.SecurityReportsController()
     tasks = tasks_api.TasksController()

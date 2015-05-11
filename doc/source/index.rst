@@ -1,24 +1,48 @@
 .. cerberus documentation master file, created by
-   sphinx-quickstart on Tue Jul  9 22:26:36 2013.
+   sphinx-quickstart on Wed May 14 23:05:42 2014.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to cerberus's documentation!
-========================================================
+==============================================
+Welcome to Cerberus's developer documentation!
+==============================================
 
-Contents:
+Introduction
+============
+
+Cerberus is a Security As A Service project aimed at integrating security tools
+inside Openstack.
+
+Installation
+============
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   readme
    installation
-   usage
-   contributing
+
+
+Architecture
+============
+
+.. toctree::
+   :maxdepth: 1
+
+   arch
+
+
+API References
+==============
+
+.. toctree::
+   :maxdepth: 1
+
+   webapi/root
+   webapi/v1
+
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`

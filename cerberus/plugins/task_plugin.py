@@ -43,7 +43,7 @@ class TaskPlugin(base.PluginBase):
         LOG.info(str(kwargs.get('task_name', 'unknown')) + " :"
                  + str(datetime.datetime.time(datetime.datetime.now())))
         i = 0
-        while(i < 3600):
+        while(i < 60):
             LOG.info(str(kwargs.get('task_name', 'unknown')) + " :"
                      + str(datetime.datetime.time(datetime.datetime.now())))
             i += 1

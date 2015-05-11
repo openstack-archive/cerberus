@@ -140,6 +140,7 @@ class FixedIntervalLoopingCallEncoder(json.JSONEncoder):
                 'period': obj.kw.get('task_period', None),
                 'type': obj.kw.get('task_type', None),
                 'plugin_id': obj.kw.get('plugin_id', None),
+                'persistent': obj.kw.get('persistent', 'False'),
                 'state': state}
 
 
@@ -151,4 +152,5 @@ class ThreadEncoder(json.JSONEncoder):
                 'name': obj.kw.get('task_name', None),
                 'type': obj.kw.get('task_type', None),
                 'plugin_id': obj.kw.get('plugin_id', None),
+                'persistent': obj.kw.get('persistent', False),
                 'state': 'running'}

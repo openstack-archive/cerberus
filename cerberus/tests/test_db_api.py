@@ -23,28 +23,11 @@ import mock
 from oslo.config import fixture as fixture_config
 
 from cerberus.db.sqlalchemy import api
-from cerberus.db.sqlalchemy import models
 from cerberus.openstack.common.db.sqlalchemy import models as db_models
 from cerberus.tests import base
 
 
 class DbApiTestCase(base.TestBase):
-
-    def test_alert_create(self):
-        self.CONF = self.useFixture(fixture_config.Config()).conf
-        self.CONF([], project='cerberus')
-        al = api.alert_create({'title': 'TitleAlert'})
-        self.assertTrue(al.id >= 0)
-
-    def test_alert_get_all(self):
-        self.CONF = self.useFixture(fixture_config.Config()).conf
-        self.CONF([], project='cerberus')
-        self.test_alert_create()
-        al = api.alert_get_all()
-        for a in al:
-            dec = models.AlertJsonSerializer().serialize(a)
-            self.assertTrue(dec['id'], 1)
-            self.assertTrue(dec['title'], 'TitleAlert')
 
     def test_security_report_create(self):
         self.CONF = self.useFixture(fixture_config.Config()).conf
