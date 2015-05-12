@@ -50,12 +50,12 @@ class DbApiTestCase(base.TestBase):
                                      'uuid': '0000-aaaa-1111-bbbb'})
         self.assertTrue(pi.id >= 0)
 
-    def test_alert_get(self):
+    def test_plugin_info_get(self):
         self.CONF = self.useFixture(fixture_config.Config()).conf
         self.CONF([], project='cerberus')
 
-        pi = api.plugin_info_create({'name': 'NameOfPluginToGet',
-                                     'uuid': '3333-aaaa-1111-bbbb'})
+        api.plugin_info_create({'name': 'NameOfPluginToGet',
+                                'uuid': '3333-aaaa-1111-bbbb'})
 
         pi = api.plugin_info_get('NameOfPluginToGet')
         self.assertEqual('NameOfPluginToGet', pi.name)

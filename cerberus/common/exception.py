@@ -146,10 +146,6 @@ class DBException(CerberusException):
     msg_fmt = _("Database error.")
 
 
-class AlertExists(DBException):
-    msg_fmt = _("Alert %(alert_id)s already exists.")
-
-
 class ReportExists(DBException):
     msg_fmt = _("Report %(report_id)s already exists.")
 

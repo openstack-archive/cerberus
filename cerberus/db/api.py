@@ -67,17 +67,17 @@ def security_report_update_ticket_id(id, ticket_id):
 
 
 def security_report_get_all(project_id=None):
-    """Get all alerts"""
+    """Get all security reports"""
     return IMPL.security_report_get_all(project_id=project_id)
 
 
 def security_report_get(id):
-    """Get all alerts"""
+    """Get security report from its id in database"""
     return IMPL.security_report_get(id)
 
 
 def security_report_get_from_report_id(report_id):
-    """Get all alerts"""
+    """Get security report from its report identifier"""
     return IMPL.security_report_get_from_report_id(report_id)
 
 
