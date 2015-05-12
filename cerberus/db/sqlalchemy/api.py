@@ -73,31 +73,71 @@ def model_query(model, *args, **kwargs):
     return query
 
 
-def _alert_get_all(session=None):
-    session = get_session()
-
-    return model_query(models.Alert, read_deleted="no",
-                       session=session).all()
+def db_sync(engine, version=None):
+    """Migrate the database to `version` or the most recent version."""
+    return migration.db_sync(engine, version=version)
 
 
-def alert_create(values):
-    alert_ref = models.Alert()
-    alert_ref.update(values)
+def db_version(engine):
+    """Display the current database version."""
+    return migration.db_version(engine)
+
+
+def _security_report_create(values):
     try:
-        alert_ref.save()
-    except db_exc.DBDuplicateEntry:
-        raise exception.AlertExists(id=values['id'])
-    return alert_ref
+        security_report_ref = models.SecurityReport()
+        security_report_ref.update(values)
+        security_report_ref.save()
+    except db_exc.DBDuplicateEntry as e:
+        LOG.exception(e)
+        raise exception.ReportExists(id=values['id'])
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
+    return security_report_ref
 
 
-def alert_get_all():
-    return _alert_get_all()
+def security_report_create(values):
+    return _security_report_create(values)
+
+
+def _security_report_update_last_report_date(report_id, date):
+    try:
+        session = get_session()
+        report = model_query(models.SecurityReport, read_deleted="no",
+                             session=session).filter(models.SecurityReport.id
+                                                     == report_id).first()
+        report.last_report_date = date
+        report.save(session)
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
+
+
+def security_report_update_last_report_date(report_id, date):
+    _security_report_update_last_report_date(report_id, date)
+
+
+def _security_report_update_ticket_id(report_id, ticket_id):
+    try:
+        session = get_session()
+        report = model_query(models.SecurityReport, read_deleted="no",
+                             session=session).filter(models.SecurityReport.id
+                                                     == report_id).first()
+        report.ticket_id = ticket_id
+        report.save(session)
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
+
+
+def security_report_update_ticket_id(report_id, ticket_id):
+    _security_report_update_ticket_id(report_id, ticket_id)
 
 
 def _security_report_get_all(project_id=None):
-    session = get_session()
-
     try:
+        session = get_session()
         if project_id is None:
             return model_query(models.SecurityReport, read_deleted="no",
                                session=session).all()
@@ -110,220 +150,248 @@ def _security_report_get_all(project_id=None):
         raise exception.DBException()
 
 
-def _security_report_get(id):
-    session = get_session()
-
-    return model_query(models.SecurityReport, read_deleted="no",
-                       session=session).filter(models.SecurityReport.
-                                               id == id).first()
-
-
-def _security_report_get_from_report_id(report_id):
-    session = get_session()
-    return model_query(models.SecurityReport, read_deleted="no",
-                       session=session).filter(models.SecurityReport.report_id
-                                               == report_id).first()
-
-
-def security_report_create(values):
-    security_report_ref = models.SecurityReport()
-    security_report_ref.update(values)
-    try:
-        security_report_ref.save()
-    except db_exc.DBDuplicateEntry as e:
-        LOG.exception(e)
-        raise exception.ReportExists(id=values['id'])
-    except Exception as e:
-        LOG.exception(e)
-        raise exception.DBException()
-    return security_report_ref
-
-
-def security_report_update_last_report_date(id, date):
-    session = get_session()
-    report = model_query(models.SecurityReport, read_deleted="no",
-                         session=session).filter(models.SecurityReport.id
-                                                 == id).first()
-    report.last_report_date = date
-    try:
-        report.save(session)
-    except Exception as e:
-        LOG.exception(e)
-        raise exception.DBException()
-
-
-def security_report_update_ticket_id(id, ticket_id):
-    session = get_session()
-    report = model_query(models.SecurityReport, read_deleted="no",
-                         session=session).filter(models.SecurityReport.id
-                                                 == id).first()
-    report.ticket_id = ticket_id
-    try:
-        report.save(session)
-    except Exception as e:
-        LOG.exception(e)
-        raise exception.DBException()
-
-
 def security_report_get_all(project_id=None):
     return _security_report_get_all(project_id=project_id)
+
+
+def _security_report_get(id):
+    try:
+        session = get_session()
+        return model_query(models.SecurityReport, read_deleted="no",
+                           session=session).filter(models.SecurityReport.
+                                                   id == id).first()
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
 
 
 def security_report_get(id):
     return _security_report_get(id)
 
 
+def _security_report_get_from_report_id(report_id):
+    try:
+        session = get_session()
+        return model_query(models.SecurityReport,
+                           read_deleted="no",
+                           session=session).filter(
+            models.SecurityReport.report_id == report_id).first()
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
+
+
 def security_report_get_from_report_id(report_id):
     return _security_report_get_from_report_id(report_id)
 
 
-def _plugin_info_get(name):
-    session = get_session()
-
-    return model_query(models.PluginInfo,
-                       read_deleted="no",
-                       session=session).filter(models.PluginInfo.name ==
-                                               name).first()
-
-
-def _plugin_info_get_from_uuid(id):
-    session = get_session()
-
-    return model_query(models.PluginInfo,
-                       read_deleted="no",
-                       session=session).filter(models.PluginInfo.uuid ==
-                                               id).first()
-
-
-def _plugins_info_get():
-    session = get_session()
-
-    return model_query(models.PluginInfo,
-                       read_deleted="no",
-                       session=session).all()
-
-
-def plugin_info_create(values):
-    plugin_info_ref = models.PluginInfo()
-    plugin_info_ref.update(values)
+def _plugin_info_create(values):
     try:
+        plugin_info_ref = models.PluginInfo()
+        plugin_info_ref.update(values)
         plugin_info_ref.save()
     except db_exc.DBDuplicateEntry:
         raise exception.PluginInfoExists(id=values['id'])
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
     return plugin_info_ref
 
 
-def plugin_info_get(name):
-    return _plugin_info_get(name)
+def plugin_info_create(values):
+    return _plugin_info_create(values)
 
 
-def plugin_info_get_from_uuid(id):
-    return _plugin_info_get_from_uuid(id)
+def _plugins_info_get():
+    try:
+        session = get_session()
+        return model_query(models.PluginInfo,
+                           read_deleted="no",
+                           session=session).all()
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
 
 
 def plugins_info_get():
     return _plugins_info_get()
 
 
-def plugin_version_update(id, version):
-    session = get_session()
-    plugin = model_query(models.PluginInfo, read_deleted="no",
-                         session=session).filter(models.PluginInfo.id ==
-                                                 id).first()
-    plugin.version = version
+def _plugin_info_get(name):
     try:
+        session = get_session()
+
+        return model_query(models.PluginInfo,
+                           read_deleted="no",
+                           session=session).filter(models.PluginInfo.name ==
+                                                   name).first()
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
+
+
+def plugin_info_get(name):
+    return _plugin_info_get(name)
+
+
+def _plugin_info_get_from_uuid(plugin_id):
+    try:
+        session = get_session()
+        return model_query(models.PluginInfo,
+                           read_deleted="no",
+                           session=session).filter(models.PluginInfo.uuid ==
+                                                   plugin_id).first()
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
+
+
+def plugin_info_get_from_uuid(plugin_id):
+    return _plugin_info_get_from_uuid(plugin_id)
+
+
+def _plugin_version_update(plugin_id, version):
+    try:
+        session = get_session()
+        plugin = model_query(models.PluginInfo, read_deleted="no",
+                             session=session).filter(models.PluginInfo.id ==
+                                                     plugin_id).first()
+        plugin.version = version
         plugin.save(session)
     except Exception as e:
         LOG.exception(e)
         raise exception.DBException()
 
 
-def db_sync(engine, version=None):
-    """Migrate the database to `version` or the most recent version."""
-    return migration.db_sync(engine, version=version)
+def plugin_version_update(plugin_id, version):
+    _plugin_version_update(plugin_id, version)
 
 
-def db_version(engine):
-    """Display the current database version."""
-    return migration.db_version(engine)
-
-
-def _security_alarm_get_all():
-
-    session = get_session()
-    return model_query(models.SecurityAlarm, read_deleted="no",
-                       session=session).all()
-
-
-def _security_alarm_get(alarm_id):
-
-    session = get_session()
-    return model_query(models.SecurityAlarm, read_deleted="no",
-                       session=session).filter(models.SecurityAlarm.
-                                               alarm_id == alarm_id).first()
+def _security_alarm_create(values):
+    try:
+        security_alarm_ref = models.SecurityAlarm()
+        security_alarm_ref.update(values)
+        security_alarm_ref.save()
+    except db_exc.DBDuplicateEntry as e:
+        LOG.exception(e)
+        raise exception.AlarmExists(id=values['id'])
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
+    return security_alarm_ref
 
 
 def security_alarm_create(values):
-    security_alarm_ref = models.SecurityAlarm()
-    security_alarm_ref.update(values)
+    return _security_alarm_create(values)
+
+
+def _security_alarm_get_all():
     try:
-        security_alarm_ref.save()
-    except db_exc.DBDuplicateEntry:
-        raise exception.AlarmExists(id=values['id'])
-    return security_alarm_ref
+        session = get_session()
+        return model_query(models.SecurityAlarm, read_deleted="no",
+                           session=session).all()
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
 
 
 def security_alarm_get_all():
     return _security_alarm_get_all()
 
 
-def security_alarm_get(id):
-    return _security_alarm_get(id)
-
-
-def security_alarm_update_ticket_id(alarm_id, ticket_id):
-    session = get_session()
-    alarm = model_query(models.SecurityAlarm, read_deleted="no",
-                        session=session).filter(models.SecurityAlarm.alarm_id
-                                                == alarm_id).first()
-    alarm.ticket_id = ticket_id
+def _security_alarm_get(alarm_id):
     try:
+        session = get_session()
+        return model_query(models.SecurityAlarm,
+                           read_deleted="no",
+                           session=session).filter(
+            models.SecurityAlarm.alarm_id == alarm_id).first()
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
+
+
+def security_alarm_get(alarm_id):
+    return _security_alarm_get(alarm_id)
+
+
+def _security_alarm_update_ticket_id(alarm_id, ticket_id):
+    try:
+        session = get_session()
+        alarm = model_query(models.SecurityAlarm,
+                            read_deleted="no",
+                            session=session).filter(
+            models.SecurityAlarm.alarm_id == alarm_id).first()
+        alarm.ticket_id = ticket_id
+
         alarm.save(session)
     except Exception as e:
         LOG.exception(e)
         raise exception.DBException()
 
 
-def create_task(values):
-    task_ref = models.Task()
-    task_ref.update(values)
+def security_alarm_update_ticket_id(alarm_id, ticket_id):
+    _security_alarm_update_ticket_id(alarm_id, ticket_id)
+
+
+def _create_task(values):
     try:
+        task_ref = models.Task()
+        task_ref.update(values)
         task_ref.save()
-    except db_exc.DBDuplicateEntry:
+    except db_exc.DBDuplicateEntry as e:
+        LOG.exception(e)
         raise exception.TaskExists(id=values['uuid'])
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
     return task_ref
 
 
-def delete_task(id):
-    session = get_session()
-    task = model_query(models.Task, read_deleted="no",
-                       session=session).filter_by(uuid=id)
-    task.delete()
+def create_task(values):
+    return _create_task(values)
 
 
-def update_state_task(id, running):
-    session = get_session()
-    task = model_query(models.Task, read_deleted="no",
-                       session=session).filter_by(uuid=id).first()
-    task.running = running
+def _delete_task(task_id):
     try:
+        session = get_session()
+        task = model_query(models.Task, read_deleted="no",
+                           session=session).filter_by(uuid=task_id)
+        task.delete()
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
+
+
+def delete_task(task_id):
+    _delete_task(task_id)
+
+
+def _update_state_task(task_id, running):
+    try:
+        session = get_session()
+        task = model_query(models.Task, read_deleted="no",
+                           session=session).filter_by(uuid=task_id).first()
+        task.running = running
         task.save(session)
     except Exception as e:
         LOG.exception(e)
         raise exception.DBException()
 
 
+def update_state_task(task_id, running):
+    _update_state_task(task_id, running)
+
+
+def _get_all_tasks():
+    try:
+        session = get_session()
+        return model_query(models.Task, read_deleted="no",
+                           session=session).all()
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
+
+
 def get_all_tasks():
-    session = get_session()
-    return model_query(models.Task, read_deleted="no",
-                       session=session).all()
+    return _get_all_tasks()

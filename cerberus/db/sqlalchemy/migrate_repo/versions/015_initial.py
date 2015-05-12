@@ -18,26 +18,6 @@ def upgrade(migrate_engine):
     meta = sqlalchemy.MetaData()
     meta.bind = migrate_engine
 
-    alert = sqlalchemy.Table(
-        'alert', meta,
-        sqlalchemy.Column('id', sqlalchemy.Integer, primary_key=True,
-                          nullable=False),
-        sqlalchemy.Column('title', sqlalchemy.Text),
-        sqlalchemy.Column('status', sqlalchemy.Text),
-        sqlalchemy.Column('severity', sqlalchemy.Integer),
-        sqlalchemy.Column('acknowledged_at', sqlalchemy.DateTime),
-        sqlalchemy.Column('plugin_id', sqlalchemy.Text),
-        sqlalchemy.Column('description', sqlalchemy.Text),
-        sqlalchemy.Column('resource_id', sqlalchemy.Text),
-        sqlalchemy.Column('issue_link', sqlalchemy.Text),
-        sqlalchemy.Column('created_at', sqlalchemy.DateTime),
-        sqlalchemy.Column('updated_at', sqlalchemy.DateTime),
-        sqlalchemy.Column('deleted_at', sqlalchemy.DateTime),
-        sqlalchemy.Column('deleted', sqlalchemy.Integer),
-        mysql_engine='InnoDB',
-        mysql_charset='utf8'
-    )
-
     plugin_info = sqlalchemy.Table(
         'plugin_info', meta,
         sqlalchemy.Column('id', sqlalchemy.Integer, primary_key=True,
@@ -83,7 +63,6 @@ def upgrade(migrate_engine):
 
     tables = (
         security_report,
-        alert,
         plugin_info,
     )
 
