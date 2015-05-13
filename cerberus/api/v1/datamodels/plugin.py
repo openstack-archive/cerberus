@@ -14,6 +14,7 @@
 #    limitations under the License.
 #
 #
+import decimal
 
 from cerberus.api.v1.datamodels import base
 from wsme import types as wtypes
@@ -64,6 +65,20 @@ class PluginResource(base.Base):
         super(PluginResource, self).__init__()
         for key in initial_data:
             setattr(self, key, initial_data[key])
+
+    @classmethod
+    def sample(cls):
+        sample = cls(initial_data={
+            'name': 'some_plugin',
+            'version': '2015.1',
+            'tool_name': 'some_tool',
+            'provider': 'some_provider',
+            'type': 'scanner',
+            'id': decimal.Decimal(1),
+            'uuid': '063d4206-5afc-409c-a4d1-c2a469299d37',
+            'methods': ['method_1', 'method_2'],
+            'subscribed_events': ['image.update']})
+        return sample
 
 
 class PluginResourceCollection(base.Base):
