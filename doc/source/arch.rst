@@ -8,7 +8,10 @@ Cerberus can be cut in two big parts:
 * Manager
 
 
-.. graphviz:: graph/arch.dot
+.. figure:: ./cerberus-arch.png
+   :width: 100%
+   :align: center
+   :alt: Architecture summary
 
 
 Module loading and extensions
