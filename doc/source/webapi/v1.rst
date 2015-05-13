@@ -9,6 +9,9 @@ Plugins
 .. rest-controller:: cerberus.api.v1.controllers.plugins:PluginsController
    :webprefix: /v1/plugins
 
+.. autotype:: cerberus.api.v1.datamodels.plugin.PluginResource
+   :members:
+
 
 Security alarms
 ===============
@@ -22,9 +25,6 @@ Security alarms
 .. autotype:: cerberus.api.v1.datamodels.security_alarm.SecurityAlarmResource
    :members:
 
-.. autotype:: cerberus.api.v1.datamodels.security_alarm.SecurityAlarmResourceCollection
-   :members:
-
 
 Security reports
 ================
@@ -35,6 +35,9 @@ Security reports
 .. rest-controller:: cerberus.api.v1.controllers.security_reports:SecurityReportController
    :webprefix: /v1/security_reports/{id}
 
+.. autotype:: cerberus.api.v1.datamodels.security_report.SecurityReportResource
+   :members:
+
 
 Tasks
 =====
@@ -44,3 +47,6 @@ Tasks
 
 .. rest-controller:: cerberus.api.v1.controllers.tasks:ActionController
    :webprefix: /v1/tasks/{id}/actions
+
+.. autotype:: cerberus.api.v1.datamodels.task.TaskResource
+   :members:
