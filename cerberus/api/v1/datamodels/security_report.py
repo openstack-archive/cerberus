@@ -15,12 +15,13 @@
 #
 
 import datetime
+import decimal
 
 from cerberus.api.v1.datamodels import base
 from wsme import types as wtypes
 
 
-class SecurityAlarmResource(base.Base):
+class SecurityReportResource(base.Base):
     """ Representation of a security report.
     """
 
@@ -76,13 +77,41 @@ class SecurityAlarmResource(base.Base):
         )
 
     def __init__(self, initial_data=None):
-        super(SecurityAlarmResource, self).__init__()
+        super(SecurityReportResource, self).__init__()
         if initial_data is not None:
             for key in initial_data:
                 setattr(self, key, initial_data[key])
 
+    @classmethod
+    def sample(cls):
+        sample = cls(id=decimal.Decimal(1),
+                     security_rating=decimal.Decimal(7.4),
+                     component_name='openstack-server',
+                     component_id='a1d869a1-6ab0-4f02-9e56-f83034bacfcb',
+                     component_type='instance',
+                     vulnerabilities_number='2',
+                     description='security report',
+                     title='Security report',
+                     last_report_date='2015-05-06T16:19:29',
+                     project_id='510c7f4ed14243f09df371bba2561177',
+                     plugin_id='063d4206-5afc-409c-a4d1-c2a469299d37',
+                     report_id='fea4b170-ed46-4a50-8b91-ed1c6876be7d',
+                     vulnerabilities={
+                         "443": {
+                             "archived": 'false',
+                             "protocol": "tcp",
+                             "family": "Web Servers",
+                             "iface_id": 329,
+                             "plugin": "1.3.6.1.4.1.25623.1.0.10386",
+                             "ip": "192.168.100.3",
+                             "id": 443,
+                             "output": "Summary: 'Remote web server does not"
+                                       " reply with 404 error code'"}})
 
-class SecurityAlarmResourceCollection(base.Base):
+        return sample
+
+
+class SecurityReportResourceCollection(base.Base):
     """A list of Security reports."""
 
-    security_reports = [SecurityAlarmResource]
+    security_reports = [SecurityReportResource]

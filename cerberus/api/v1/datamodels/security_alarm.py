@@ -70,6 +70,24 @@ class SecurityAlarmResource(base.Base):
             for key in initial_data:
                 setattr(self, key, initial_data[key])
 
+    @classmethod
+    def sample(cls):
+        sample = cls(priority='INFO',
+                     event_type='security.alarm',
+                     timestamp='2015-03-24 09:50:50.577840',
+                     desc={
+                         'project_id': 'e845a1f2004847e4ac14cb1732a2e75f',
+                         'component_id': '4b75699f7a9649438932bebdbf9711e0',
+                         'status': 'new',
+                         'severity': 'critical',
+                         'summary': 'Several attempts to log failed',
+                         'description': 'Apache suffered an attack by brute'
+                                        ' force. Thousands of attempts to log'
+                                        ' failed'
+                     },
+                     message_id='fea4b170-ed46-4a50-8b91-ed1c6876be7d')
+        return sample
+
 
 class SecurityAlarmResourceCollection(base.Base):
     """A list of Security alarms."""
