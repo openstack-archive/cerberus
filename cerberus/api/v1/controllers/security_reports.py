@@ -47,7 +47,7 @@ class SecurityReportsController(base.BaseController):
             )
         return security_reports
 
-    @wsme_pecan.wsexpose(report_models.SecurityAlarmResourceCollection)
+    @wsme_pecan.wsexpose(report_models.SecurityReportResourceCollection)
     def get_all(self):
         """ Get stored security reports.
         :return: list of security reports for one or all projects depending on
@@ -66,11 +66,11 @@ class SecurityReportsController(base.BaseController):
         # todo(eglamn3) : no need to serialize here
         for security_report in security_reports:
             reports_resource.append(
-                report_models.SecurityAlarmResource(
+                report_models.SecurityReportResource(
                     models.SecurityReportJsonSerializer().
                     serialize(security_report)))
 
-        return report_models.SecurityAlarmResourceCollection(
+        return report_models.SecurityReportResourceCollection(
             security_reports=reports_resource)
 
 
@@ -99,7 +99,7 @@ class SecurityReportController(base.BaseController):
             )
         return security_report
 
-    @wsme_pecan.wsexpose(report_models.SecurityAlarmResource,
+    @wsme_pecan.wsexpose(report_models.SecurityReportResource,
                          wtypes.text)
     def get(self):
         """Get security report in db. """
@@ -110,7 +110,7 @@ class SecurityReportController(base.BaseController):
         s_report = models.SecurityReportJsonSerializer().\
             serialize(security_report)
 
-        return report_models.SecurityAlarmResource(initial_data=s_report)
+        return report_models.SecurityReportResource(initial_data=s_report)
 
     @pecan.expose("json")
     def tickets(self, ticket_id):
