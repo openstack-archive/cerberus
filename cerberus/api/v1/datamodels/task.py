@@ -13,6 +13,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 #
+import decimal
 
 from cerberus.api.v1.datamodels import base
 from wsme import types as wtypes
@@ -55,6 +56,18 @@ class TaskResource(base.Base):
         if initial_data is not None:
             for key in initial_data:
                 setattr(self, key, initial_data[key])
+
+    @classmethod
+    def sample(cls):
+        sample = cls(initial_data={
+            'name': 'some_task',
+            'period': decimal.Decimal(3),
+            'persistent': 'True',
+            'state': 'running',
+            'plugin_id': '063d4206-5afc-409c-a4d1-c2a469299d37',
+            'type': 'recurrent',
+            'id': '4820cea8-e88e-463b-ae1f-6bbde009cc93'})
+        return sample
 
 
 class TaskResourceCollection(base.Base):
