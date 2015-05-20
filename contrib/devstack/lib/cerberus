@@ -54,11 +54,11 @@ fi
 CERBERUS_BACKEND=${CERBERUS_BACKEND:-sqlite}
 
 # Set cerberus repository
-CERBERUS_REPO=${CERBERUS_REPO:-git@svc-integration:/home/git/repositories/cerberus.git}
+CERBERUS_REPO=${CERBERUS_REPO:-https://github.com/stackforge/cerberus.git}
 CERBERUS_BRANCH=${CERBERUS_BRANCH:-master}
-CERBERUS_CLIENT_REPO=${CERBERUS_CLIENT_REPO:-git@svc-integration:/home/git/repositories/python-cerberusclient.git}
+CERBERUS_CLIENT_REPO=${CERBERUS_CLIENT_REPO:-https://github.com/stackforge/python-cerberusclient.git}
 CERBERUS_CLIENT_BRANCH=${CERBERUS_CLIENT_BRANCH:-master}
-CERBERUS_DASHBOARD_REPO=${CERBERUS_DASHBOARD_REPO:-git@svc-integration:/home/git/repositories/cerberus-dashboard.git}
+CERBERUS_DASHBOARD_REPO=${CERBERUS_DASHBOARD_REPO:-https://github.com/stackforge/cerberus-dashboard.git}
 CERBERUS_DASHBOARD_BRANCH=${CERBERUS_DASHBOARD_BRANCH:-master}
 
 # Set Cerberus connection info
