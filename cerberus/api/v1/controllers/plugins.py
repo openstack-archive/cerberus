@@ -90,6 +90,7 @@ class PluginsController(base.BaseController):
     @wsme_pecan.wsexpose(plugin_models.PluginResourceCollection)
     def get_all(self):
         """ Get a list of plugins loaded by Cerberus manager
+
         :return: PluginResourceCollection : a list of plugins loaded by
         Cerberus manager
         :raises:
@@ -146,6 +147,7 @@ class PluginsController(base.BaseController):
                          wtypes.text)
     def get_one(self, uuid):
         """ Get details of a specific plugin whose identifier is uuid
+
         :param uuid: the identifier of the plugin
         :return: details of a specific plugin
         :raises:
