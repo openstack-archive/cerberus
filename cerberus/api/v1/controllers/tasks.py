@@ -44,7 +44,11 @@ class ActionController(base.BaseController):
 
     @wsme_pecan.wsexpose(None, wtypes.text)
     def stop(self, task_id):
-        """Stop task"""
+        """Stop task
+
+        :raises:
+            HTTPBadRequest: task not found or impossible to stop it
+        """
         try:
             self.stop_task(task_id)
         except rpc.RemoteError:
@@ -53,15 +57,23 @@ class ActionController(base.BaseController):
 
     @wsme_pecan.wsexpose(None, wtypes.text)
     def force_delete(self, task_id):
-        """Force delete task"""
+        """Force delete task
+
+        :raises:
+            HTTPNotFound: task is not found
+        """
         try:
             self.force_delete_task(task_id)
         except rpc.RemoteError as e:
-            raise exc.HTTPBadRequest(explanation=e.value)
+            raise exc.HTTPNotFound(explanation=e.value)
 
     @wsme_pecan.wsexpose(None, wtypes.text)
     def restart(self, task_id):
-        """Restart delete task"""
+        """Restart delete task
+
+        :raises:
+            HTTPBadRequest: task not found or impossible to restart it
+        """
         try:
             self.restart_task(task_id)
         except rpc.RemoteError as e:
@@ -119,10 +131,12 @@ class TasksController(base.BaseController):
 
     @wsme_pecan.wsexpose(task_models.TaskResourceCollection)
     def get_all(self):
-        """ List tasks
+        """ List tasks handled by Cerberus Manager.
+
         :return: list of tasks
         :raises:
-            HTTPBadRequest
+            HTTPServiceUnavailable: an error occurred in Cerberus Manager or
+            the service is unavailable
         """
         try:
             tasks = self.list_tasks()
@@ -142,14 +156,19 @@ class TasksController(base.BaseController):
     @wsme_pecan.wsexpose(task_models.TaskResource,
                          wtypes.text)
     def get(self, task_id):
-        """ Get details of a task"""
+        """ Get details of a task
+
+        :return: task details
+        :raises:
+            HTTPNotFound: task is not found
+        """
         try:
             task = self.get_task(task_id)
         except rpc.RemoteError:
             raise exc.HTTPNotFound()
         except Exception as e:
             LOG.exception(e)
-            raise
+            raise exc.HTTPNotFound()
         return task_models.TaskResource(initial_data=task)
 
     def create_task(self, task):
@@ -176,7 +195,12 @@ class TasksController(base.BaseController):
     @wsme_pecan.wsexpose(task_models.TaskResource,
                          body=task_models.TaskResource)
     def post(self, task):
-        """Create a task"""
+        """Create a task
+
+        :return: task details
+        :raises:
+            HTTPBadRequest
+        """
 
         try:
             task = self.create_task(task)
@@ -190,11 +214,15 @@ class TasksController(base.BaseController):
 
     @wsme_pecan.wsexpose(None, wtypes.text)
     def delete(self, task_id):
-        """Delete a task"""
+        """Delete a task
+
+        :raises:
+            HTTPNotFound: task does not exist
+        """
         try:
             self.delete_task(task_id)
         except rpc.RemoteError as e:
-            raise exc.HTTPBadRequest(explanation=e.value)
+            raise exc.HTTPNotFound(explanation=e.value)
         except Exception as e:
             LOG.exception(e)
             raise

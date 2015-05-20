@@ -50,8 +50,10 @@ class SecurityReportsController(base.BaseController):
     @wsme_pecan.wsexpose(report_models.SecurityReportResourceCollection)
     def get_all(self):
         """ Get stored security reports.
-        :return: list of security reports for one or all projects depending on
-        context of the token.
+
+        :return: list of security reports
+        :raises:
+            HTTPNotFound: Any database error
         """
         ctx = pecan.request.context
         try:
@@ -102,7 +104,12 @@ class SecurityReportController(base.BaseController):
     @wsme_pecan.wsexpose(report_models.SecurityReportResource,
                          wtypes.text)
     def get(self):
-        """Get security report in db. """
+        """Get security report in db.
+
+        :return: a security report
+        :raises:
+            HTTPNotFound: Report not found or any database error
+        """
         try:
             security_report = self.get_security_report(self._id)
         except errors.DbError:
@@ -117,7 +124,8 @@ class SecurityReportController(base.BaseController):
         """Modify the ticket id associated to a security report in db.
 
         :param ticket_id: the ticket_id to store in db.
-
+        :raises:
+            HTTPNotFound: Report not found or any database error
         """
         try:
             db.security_report_update_ticket_id(self._id, ticket_id)

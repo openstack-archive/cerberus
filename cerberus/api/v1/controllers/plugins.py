@@ -91,8 +91,7 @@ class PluginsController(base.BaseController):
     def get_all(self):
         """ Get a list of plugins loaded by Cerberus manager
 
-        :return: PluginResourceCollection : a list of plugins loaded by
-        Cerberus manager
+        :return: a list of plugins loaded by Cerberus manager
         :raises:
             HTTPServiceUnavailable: an error occurred in Cerberus Manager or
             the service is unavailable

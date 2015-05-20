@@ -49,8 +49,10 @@ class SecurityAlarmsController(base.BaseController):
     @wsme_pecan.wsexpose(alarm_models.SecurityAlarmResourceCollection)
     def get_all(self):
         """ Get stored security alarms.
-        :return: list of security alarms for one or all projects depending on
-        context of the token.
+
+        :return: list of security alarms
+        :raises:
+            HTTPNotFound: Any database error
         """
         try:
             security_alarms = self.list_security_alarms()
@@ -93,7 +95,12 @@ class SecurityAlarmController(base.BaseController):
     @wsme_pecan.wsexpose(alarm_models.SecurityAlarmResource,
                          wtypes.text)
     def get(self):
-        """Get security alarm in db"""
+        """Get security alarm in db
+
+        :return: a security alarm
+        :raises:
+            HTTPNotFound: Alarm not found or any database error
+        """
         try:
             security_alarm = self.get_security_alarm(self._uuid)
         except errors.DbError:
@@ -108,7 +115,8 @@ class SecurityAlarmController(base.BaseController):
         """Modify the ticket id associated to a security alarm in db.
 
         :param ticket_id: the ticket_id to store in db.
-
+        :raises:
+            HTTPNotFound: Alarm not found or any database error
         """
         try:
             db.security_alarm_update_ticket_id(self._uuid, ticket_id)
