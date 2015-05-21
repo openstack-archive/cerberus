@@ -186,19 +186,6 @@
 
 
 #
-# Options defined in cerberus.manager
-#
-
-# AMQP topic used for OpenStack notifications (list value)
-#notification_topics=notifications
-
-# Messaging URLs to listen for notifications. Example:
-# transport://user:pass@host1:port[,hostN:portN]/virtual_host
-# (DEFAULT/transport_url is used if empty) (multi valued)
-#messaging_urls=
-
-
-#
 # Options defined in cerberus.service
 #
 
