@@ -170,46 +170,29 @@ class TestTasks(base.TestApiBase):
         response = self.get_json(self.task_path, expect_errors=True)
         self.assertEqual(404, response.status_code)
 
-    def test_stop_task_wrong_json(self):
-        request_body = "INCORRECT JSON"
-        response = self.post_json(self.task_path,
-                                  request_body,
-                                  expect_errors=True)
-        self.assertEqual(400, response.status_code)
-
     def test_stop_task_wrong_id(self):
-        request_body = json.dumps({
-            "stop": "null"
-        })
         messaging.RPCClient.call = mock.MagicMock(
             side_effect=messaging.RemoteError)
-        response = self.post_json(self.task_path,
-                                  request_body,
+        response = self.post_json(self.task_path + '/action/stop', {},
                                   expect_errors=True)
         self.assertEqual(400, response.status_code)
+        self.assertEqual('Task can not be stopped',
+                         response.json.get('faultstring', None))
 
     def test_force_delete_task_wrong_id(self):
-        request_body = json.dumps({
-            "forceDelete": "null"
-        })
         messaging.RPCClient.call = mock.MagicMock(
             side_effect=messaging.RemoteError)
-        response = self.post_json(self.task_path,
-                                  request_body,
+        response = self.post_json(self.task_path + 'action/force_delete', {},
                                   expect_errors=True)
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(404, response.status_code)
 
     def test_force_delete_task_id_not_integer(self):
-        request_body = json.dumps({
-            "forceDelete": "null"
-        })
-        response = self.post_json('/tasks/toto',
-                                  request_body,
+        response = self.post_json('/tasks/toto' + 'action/force_delete', {},
                                   expect_errors=True)
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(404, response.status_code)
 
     def test_delete_task_not_existing(self):
         messaging.RPCClient.call = mock.MagicMock(
             side_effect=messaging.RemoteError(value="dummy"))
         response = self.delete(self.task_path, expect_errors=True)
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(404, response.status_code)
