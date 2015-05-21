@@ -132,7 +132,7 @@ function cleanup_cerberus {
     rm -rf $CERBERUS_AUTH_CACHE_DIR/*
     rm -rf $CERBERUS_CONF_DIR/*
     if [[ "$ENABLED_SERVICES" =~ "cerberus-dashboard" ]]; then
-        rm $HORIZON_DIR/openstack_dashboard/local/enabled/_50_cerberus.py
+        rm -f $HORIZON_DIR/openstack_dashboard/local/enabled/_50_cerberus.py
     fi
 }
 
