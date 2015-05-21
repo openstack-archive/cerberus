@@ -42,7 +42,7 @@ def upgrade(migrate_engine):
         sqlalchemy.Column('id', sqlalchemy.Integer, primary_key=True,
                           nullable=False),
         sqlalchemy.Column('plugin_id', sqlalchemy.Text),
-        sqlalchemy.Column('report_id', sqlalchemy.Text, unique=True),
+        sqlalchemy.Column('report_id', sqlalchemy.VARCHAR(255), unique=True),
         sqlalchemy.Column('component_id', sqlalchemy.Text),
         sqlalchemy.Column('component_type', sqlalchemy.Text),
         sqlalchemy.Column('component_name', sqlalchemy.Text),
@@ -61,9 +61,52 @@ def upgrade(migrate_engine):
         mysql_charset='utf8'
     )
 
+    security_alarm = sqlalchemy.Table(
+        'security_alarm', meta,
+        sqlalchemy.Column('id', sqlalchemy.Integer, primary_key=True,
+                          nullable=False),
+        sqlalchemy.Column('plugin_id', sqlalchemy.Text),
+        sqlalchemy.Column('alarm_id', sqlalchemy.VARCHAR(255), unique=True),
+        sqlalchemy.Column('component_id', sqlalchemy.Text),
+        sqlalchemy.Column('project_id', sqlalchemy.Text),
+        sqlalchemy.Column('ticket_id', sqlalchemy.Text),
+        sqlalchemy.Column('timestamp', sqlalchemy.DateTime),
+        sqlalchemy.Column('summary', sqlalchemy.Text),
+        sqlalchemy.Column('severity', sqlalchemy.Text),
+        sqlalchemy.Column('status', sqlalchemy.Text),
+        sqlalchemy.Column('description', sqlalchemy.Text),
+        sqlalchemy.Column('created_at', sqlalchemy.DateTime),
+        sqlalchemy.Column('updated_at', sqlalchemy.DateTime),
+        sqlalchemy.Column('deleted_at', sqlalchemy.DateTime),
+        sqlalchemy.Column('deleted', sqlalchemy.Integer),
+        mysql_engine='InnoDB',
+        mysql_charset='utf8'
+    )
+
+    task = sqlalchemy.Table(
+        'task', meta,
+        sqlalchemy.Column('id', sqlalchemy.Integer, primary_key=True,
+                          nullable=False),
+        sqlalchemy.Column('type', sqlalchemy.Text),
+        sqlalchemy.Column('plugin_id', sqlalchemy.Text),
+        sqlalchemy.Column('uuid', sqlalchemy.Text),
+        sqlalchemy.Column('name', sqlalchemy.Text),
+        sqlalchemy.Column('method', sqlalchemy.Text),
+        sqlalchemy.Column('running', sqlalchemy.Boolean),
+        sqlalchemy.Column('period', sqlalchemy.Integer),
+        sqlalchemy.Column('created_at', sqlalchemy.DateTime),
+        sqlalchemy.Column('updated_at', sqlalchemy.DateTime),
+        sqlalchemy.Column('deleted_at', sqlalchemy.DateTime),
+        sqlalchemy.Column('deleted', sqlalchemy.Integer),
+        mysql_engine='InnoDB',
+        mysql_charset='utf8'
+    )
+
     tables = (
         security_report,
         plugin_info,
+        security_alarm,
+        task
     )
 
     for index, table in enumerate(tables):

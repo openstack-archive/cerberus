@@ -20,7 +20,6 @@ from oslo.config import cfg
 from sqlalchemy import create_engine
 
 from cerberus.common import config
-from cerberus.db.sqlalchemy import models
 
 
 def main():
@@ -34,8 +33,6 @@ def main():
         conn.execute("CREATE DATABASE cerberus")
     except Exception:
         pass
-
-    models.BASE.metadata.create_all(engine)
 
     conn.close()
 
