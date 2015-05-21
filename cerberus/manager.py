@@ -32,13 +32,6 @@ from plugins import base
 
 LOG = log.getLogger(__name__)
 
-OPTS = [
-    cfg.ListOpt('notification_topics', default=['notifications', ],
-                help='AMQP topic used for OpenStack notifications'),
-]
-
-cfg.CONF.register_opts(OPTS)
-
 
 class CerberusManager(service.CerberusService):
 
@@ -100,6 +93,10 @@ class CerberusManager(service.CerberusService):
         self.notification_server = None
         super(CerberusManager, self).start()
 
+        transport = messaging.get_transport(cfg.CONF)
+        notifier = messaging.Notifier(transport)
+        notifier.prepare()
+
         targets = []
         plugins = []
         self.cerberus_manager = self._get_cerberus_manager()
@@ -120,8 +117,6 @@ class CerberusManager(service.CerberusService):
             plugins.append(handler)
 
         self.add_stored_tasks()
-
-        transport = messaging.get_transport(cfg.CONF)
 
         if transport:
             rpc_target = messaging.Target(topic='test_rpc', server='server1')
