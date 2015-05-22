@@ -16,7 +16,7 @@ import os
 from cerberus.openstack.common.db.sqlalchemy import migration as oslo_migration
 
 
-INIT_VERSION = 14
+INIT_VERSION = 0
 
 
 def db_sync(engine, version=None):
