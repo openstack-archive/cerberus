@@ -151,7 +151,7 @@ class ReportExists(DBException):
 
 
 class PluginInfoExists(DBException):
-    msg_fmt = _("Plugin info %(id)s already exists.")
+    msg_fmt = _("Plugin info %(plugin_id)s already exists.")
 
 
 class AlarmExists(DBException):
