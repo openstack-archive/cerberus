@@ -22,15 +22,60 @@ from oslo import messaging
 from stevedore import extension
 
 from cerberus.common import errors
+from cerberus.common import exception as cerberus_exception
 from cerberus.common import service
 from cerberus.db.sqlalchemy import api as db_api
+from cerberus import notifications
 from cerberus.openstack.common import log
 from cerberus.openstack.common import loopingcall
 from cerberus.openstack.common import threadgroup
 from plugins import base
 
 
+OPTS = [
+    cfg.StrOpt('notifier_topic',
+               default='notifications',
+               help='The topic that Cerberus uses for generating '
+                    'notifications')
+]
+
+cfg.CONF.register_opts(OPTS)
+
 LOG = log.getLogger(__name__)
+
+
+_SECURITY_REPORT = 'security_report'
+
+
+def store_report_and_notify(title, plugin_id, report_id, component_id,
+                            component_name, component_type, project_id,
+                            description, security_rating, vulnerabilities,
+                            vulnerabilities_number, last_report_date):
+    try:
+        db_api.security_report_create(
+            {'title': title,
+             'plugin_id': plugin_id,
+             'report_id': report_id,
+             'component_id': component_id,
+             'component_type': component_type,
+             'component_name': component_name,
+             'project_id': project_id,
+             'description': description,
+             'security_rating': security_rating,
+             'vulnerabilities': vulnerabilities,
+             'vulnerabilities_number': vulnerabilities_number})
+        db_report_id = db_api.security_report_get_from_report_id(
+            report_id).id
+        db_api.security_report_update_last_report_date(
+            db_report_id, last_report_date)
+        payload = {'security_rating': security_rating}
+        notifications.send_notification('store', 'security_report', payload)
+    except cerberus_exception.DBException as e:
+        LOG.exception(e)
+        pass
+    except Exception as e:
+        LOG.exception(e)
+        pass
 
 
 class CerberusManager(service.CerberusService):
@@ -46,6 +91,7 @@ class CerberusManager(service.CerberusService):
 
     def __init__(self):
         super(CerberusManager, self).__init__()
+        self.notifier = None
 
     def _register_plugin(self, extension):
         """Register plugin in database
@@ -94,9 +140,7 @@ class CerberusManager(service.CerberusService):
         super(CerberusManager, self).start()
 
         transport = messaging.get_transport(cfg.CONF)
-        notifier = messaging.Notifier(transport)
-        notifier.prepare()
-
+        self.notifier = notifications._get_notifier()
         targets = []
         plugins = []
         self.cerberus_manager = self._get_cerberus_manager()
