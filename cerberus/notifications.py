@@ -18,7 +18,7 @@ import socket
 from oslo.config import cfg
 from oslo import messaging
 
-from cerberus.openstack.common.gettextutils import _
+from cerberus.openstack.common.gettextutils import _  # noqa
 from cerberus.openstack.common import log
 
 
