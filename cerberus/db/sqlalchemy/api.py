@@ -90,7 +90,7 @@ def _security_report_create(values):
         security_report_ref.save()
     except db_exc.DBDuplicateEntry as e:
         LOG.exception(e)
-        raise exception.ReportExists(id=values['id'])
+        raise exception.ReportExists(report_id=values['report_id'])
     except Exception as e:
         LOG.exception(e)
         raise exception.DBException()
@@ -191,7 +191,7 @@ def _plugin_info_create(values):
         plugin_info_ref.update(values)
         plugin_info_ref.save()
     except db_exc.DBDuplicateEntry:
-        raise exception.PluginInfoExists(id=values['id'])
+        raise exception.PluginInfoExists(plugin_id=values['id'])
     except Exception as e:
         LOG.exception(e)
         raise exception.DBException()
@@ -274,7 +274,7 @@ def _security_alarm_create(values):
         security_alarm_ref.save()
     except db_exc.DBDuplicateEntry as e:
         LOG.exception(e)
-        raise exception.AlarmExists(id=values['id'])
+        raise exception.AlarmExists(alarm_id=values['id'])
     except Exception as e:
         LOG.exception(e)
         raise exception.DBException()
@@ -341,7 +341,7 @@ def _create_task(values):
         task_ref.save()
     except db_exc.DBDuplicateEntry as e:
         LOG.exception(e)
-        raise exception.TaskExists(id=values['uuid'])
+        raise exception.TaskExists(task_id=values['uuid'])
     except Exception as e:
         LOG.exception(e)
         raise exception.DBException()
