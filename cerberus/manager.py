@@ -51,31 +51,43 @@ def store_report_and_notify(title, plugin_id, report_id, component_id,
                             component_name, component_type, project_id,
                             description, security_rating, vulnerabilities,
                             vulnerabilities_number, last_report_date):
+    report = {'title': title,
+              'plugin_id': plugin_id,
+              'report_id': report_id,
+              'component_id': component_id,
+              'component_type': component_type,
+              'component_name': component_name,
+              'project_id': project_id,
+              'description': description,
+              'security_rating': security_rating,
+              'vulnerabilities': vulnerabilities,
+              'vulnerabilities_number': vulnerabilities_number}
     try:
-        db_api.security_report_create(
-            {'title': title,
-             'plugin_id': plugin_id,
-             'report_id': report_id,
-             'component_id': component_id,
-             'component_type': component_type,
-             'component_name': component_name,
-             'project_id': project_id,
-             'description': description,
-             'security_rating': security_rating,
-             'vulnerabilities': vulnerabilities,
-             'vulnerabilities_number': vulnerabilities_number})
+        db_api.security_report_create(report)
         db_report_id = db_api.security_report_get_from_report_id(
             report_id).id
         db_api.security_report_update_last_report_date(
             db_report_id, last_report_date)
-        payload = {'security_rating': security_rating}
-        notifications.send_notification('store', 'security_report', payload)
-    except cerberus_exception.DBException as e:
-        LOG.exception(e)
-        pass
-    except Exception as e:
-        LOG.exception(e)
-        pass
+        notifications.send_notification('store', 'security_report', report)
+    except cerberus_exception.DBException:
+        raise
+
+
+def store_alarm_and_notify(plugin_id, alarm_id, timestamp, status, severity,
+                           component_id, description, summary):
+    alarm = {'plugin_id': plugin_id,
+             'alarm_id': alarm_id,
+             'timestamp': timestamp,
+             'status': status,
+             'severity': severity,
+             'component_id': component_id,
+             'description': description,
+             'summary': summary}
+    try:
+        db_api.security_alarm_create(alarm)
+        notifications.send_notification('store', 'security_alarm', alarm)
+    except cerberus_exception.DBException:
+        raise
 
 
 class CerberusManager(service.CerberusService):
