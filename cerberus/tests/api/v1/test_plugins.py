@@ -94,7 +94,7 @@ class TestPlugins(base.TestApiBase):
         messaging.RPCClient.call = mock.MagicMock(
             side_effect=messaging.RemoteError)
         res = self.get_json(self.plugins_path, expect_errors=True)
-        self.assertEqual(503, res.status_code)
+        self.assertEqual(527, res.status_code)
 
     def test_get_plugin_not_existing(self):
         messaging.RPCClient.call = mock.MagicMock(
