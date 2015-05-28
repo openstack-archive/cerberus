@@ -25,10 +25,10 @@ from eventlet import greenpool
 import json
 import mock
 import pkg_resources
+from stevedore import extension
 import uuid
 
 from oslo import messaging
-from stevedore import extension
 
 from cerberus.common import errors
 from cerberus.common import loopingcall
@@ -36,8 +36,8 @@ from cerberus.common import threadgroup
 from cerberus.db.sqlalchemy import api as db_api
 from cerberus import manager
 from cerberus.plugins import base as base_plugin
-from cerberus.tests import base
-from cerberus.tests.db import utils as db_utils
+from cerberus.tests.unit import base
+from cerberus.tests.unit.db import utils as db_utils
 
 
 PLUGIN_UUID = 'UUID'
@@ -228,7 +228,7 @@ class TestCerberusManager(base.TestBase):
     def test_get_plugins(self):
         ctx = {"some": "context"}
         json_plugin1 = {
-            "name": "cerberus.tests.test_cerberus_manager.FakePlugin",
+            "name": "cerberus.tests.unit.test_cerberus_manager.FakePlugin",
             "subscribed_events":
             [
             ],
@@ -249,7 +249,7 @@ class TestCerberusManager(base.TestBase):
         c_manager.cerberus_manager = self.extension_mgr
 
         json_plugin1 = {
-            "name": "cerberus.tests.test_cerberus_manager.FakePlugin",
+            "name": "cerberus.tests.unit.test_cerberus_manager.FakePlugin",
             "subscribed_events":
             [
             ],

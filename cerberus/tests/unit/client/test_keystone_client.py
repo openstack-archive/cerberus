@@ -15,11 +15,10 @@
 #
 
 import mock
-
 from oslo.config import cfg
 
 from cerberus.client import keystone_client
-from cerberus.tests import base
+from cerberus.tests.unit import base
 
 cfg.CONF.import_group('service_credentials', 'cerberus.service')
 

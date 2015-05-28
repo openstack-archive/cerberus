@@ -18,9 +18,9 @@ import os
 from oslo.config import cfg
 from oslotest import base
 
-from cerberus.tests import config_fixture
-from cerberus.tests import policy_fixture
-from cerberus.tests import utils
+from cerberus.tests.unit import config_fixture
+from cerberus.tests.unit import policy_fixture
+from cerberus.tests.unit import utils
 
 
 CONF = cfg.CONF

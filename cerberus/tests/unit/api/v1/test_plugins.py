@@ -15,14 +15,14 @@
 #
 
 import json
-import mock
 from sqlalchemy import exc
 
+import mock
 from oslo import messaging
 
 from cerberus import db
-from cerberus.tests.api import base
-from cerberus.tests.db import utils as db_utils
+from cerberus.tests.unit.api import base
+from cerberus.tests.unit.db import utils as db_utils
 
 
 PLUGIN_ID_1 = 1
