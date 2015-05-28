@@ -21,12 +21,12 @@ test_cerberus manager
 Tests for `cerberus` module.
 """
 
-from eventlet import greenpool
 import json
-import mock
-import pkg_resources
 import uuid
 
+from eventlet import greenpool
+import mock
+import pkg_resources
 from oslo import messaging
 from stevedore import extension
 
@@ -36,8 +36,8 @@ from cerberus.common import threadgroup
 from cerberus.db.sqlalchemy import api as db_api
 from cerberus import manager
 from cerberus.plugins import base as base_plugin
-from cerberus.tests import base
-from cerberus.tests.db import utils as db_utils
+from cerberus.tests.unit import base
+from cerberus.tests.unit.db import utils as db_utils
 
 
 PLUGIN_UUID = 'UUID'
