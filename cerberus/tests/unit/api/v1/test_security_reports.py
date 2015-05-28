@@ -14,12 +14,14 @@
 #    limitations under the License.
 #
 
-import mock
 from sqlalchemy import exc as sql_exc
 
+import mock
+
 from cerberus import db
-from cerberus.tests.api import base
-from cerberus.tests.db import utils as db_utils
+from cerberus.tests.unit.api import base
+from cerberus.tests.unit.db import utils as db_utils
+
 
 SECURITY_REPORT_ID = 'abc123'
 SECURITY_REPORT_ID_2 = 'xyz789'

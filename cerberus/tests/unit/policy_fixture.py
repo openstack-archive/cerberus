@@ -14,14 +14,15 @@
 #    limitations under the License.
 #
 
-import fixtures
 import os
 
+import fixtures
 from oslo.config import cfg
 
 from cerberus.common import policy as cerberus_policy
 from cerberus.openstack.common import policy as common_policy
-from cerberus.tests import fake_policy
+from cerberus.tests.unit import fake_policy
+
 
 CONF = cfg.CONF
 
