@@ -74,8 +74,9 @@ class CerberusClientBase(rest_client.RestClient):
 
 class CerberusClientV1(CerberusClientBase):
 
-    def list(self):
-        self.get("http://127.0.0.1:8300/v1")
+    def __init__(self, auth_provider, service_type):
+        super(CerberusClientV1, self).__init__(auth_provider, service_type)
+        self._version = 'v1'
 
 
 class AuthProv(auth.KeystoneV2AuthProvider):

@@ -34,36 +34,30 @@ class NotificationTests(base.TestCase):
                                                          'bare',
                                                          'iso',
                                                          visibility='private')
-
-        # Remove image at the end
-        self.addCleanup(self.mgr.image_client.delete_image, glance_resp['id'])
         self.assertEqual('queued', glance_resp['status'])
         image_id = glance_resp['id']
 
+        # Remove image at the end
+        self.addCleanup(self.mgr.image_client.delete_image, glance_resp['id'])
+
+        # Check how many tasks there are at the beginning
         resp, task_list_0 = self.security_client.get("v1/tasks")
         task_list_0 = json.loads(task_list_0)
 
         # Update Image
-        self.mgr.image_client.update_image(image_id,
-                                           'START')
+        self.mgr.image_client.update_image(image_id, 'START')
 
         # Verifying task has been created
         resp, task_list_1 = self.security_client.get("v1/tasks")
         task_list_1 = json.loads(task_list_1)
-
-        import pdb
-        pdb.set_trace()
-
         self.assertEqual(len(task_list_0.get('tasks', 0)) + 1,
                          len(task_list_1.get('tasks', 0)))
 
         # Update Image
-        self.mgr.image_client.update_image(image_id,
-                                           'STOP')
+        self.mgr.image_client.update_image(image_id, 'STOP')
 
-        # Verifying task has been created
+        # Verify task has been created
         resp, task_list_2 = self.security_client.get("v1/tasks")
         task_list_2 = json.loads(task_list_2)
-
         self.assertEqual(len(task_list_1.get('tasks', 0)) - 1,
                          len(task_list_2.get('tasks', 0)))
