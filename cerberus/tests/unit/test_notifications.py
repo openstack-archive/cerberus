@@ -14,14 +14,14 @@
 #    limitations under the License.
 #
 
-import mock
 import uuid
 
+import mock
 from oslo.config import cfg
 
 from cerberus import notifications
 from cerberus.openstack.common.fixture import moxstubout
-from cerberus.tests import base
+from cerberus.tests.unit import base
 
 
 EXP_RESOURCE_TYPE = uuid.uuid4().hex

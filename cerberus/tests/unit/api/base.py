@@ -19,7 +19,7 @@ import pecan.testing
 
 from cerberus.api import auth
 from cerberus.db import api as dbapi
-from cerberus.tests import base
+from cerberus.tests.unit import base
 
 
 PATH_PREFIX = '/v1'

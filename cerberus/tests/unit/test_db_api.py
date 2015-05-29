@@ -19,12 +19,11 @@ Tests for `db api` module.
 """
 
 import mock
-
 from oslo.config import fixture as fixture_config
 
 from cerberus.db.sqlalchemy import api
 from cerberus.openstack.common.db.sqlalchemy import models as db_models
-from cerberus.tests import base
+from cerberus.tests.unit import base
 
 
 class DbApiTestCase(base.TestBase):
