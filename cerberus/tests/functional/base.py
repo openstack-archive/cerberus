@@ -111,7 +111,7 @@ class TestCase(base.BaseTestCase):
         else:
             cls.mgr = clients.Manager()
 
-        cls.client = CerberusClientV1(
+        cls.security_client = CerberusClientV1(
             cls.mgr.auth_provider, cls._service)
 
     def setUp(self):

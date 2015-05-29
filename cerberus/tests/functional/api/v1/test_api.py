@@ -22,7 +22,7 @@ class AlarmTestsV1(base.TestCase):
     _service = 'security'
 
     def test_list_alarms(self):
-        resp, body = self.client.get("v1/security_alarms")
+        resp, body = self.security_client.get("v1/security_alarms")
         self.assertEqual(200, resp.status)
 
 
@@ -31,7 +31,7 @@ class ReportTestsV1(base.TestCase):
     _service = 'security'
 
     def test_list_reports(self):
-        resp, body = self.client.get("v1/security_reports")
+        resp, body = self.security_client.get("v1/security_reports")
         self.assertEqual(200, resp.status)
 
 
@@ -40,7 +40,7 @@ class TaskTestsV1(base.TestCase):
     _service = 'security'
 
     def test_list_tasks(self):
-        resp, body = self.client.get("v1/tasks")
+        resp, body = self.security_client.get("v1/tasks")
         self.assertEqual(200, resp.status)
 
 
@@ -49,5 +49,5 @@ class PluginTestsV1(base.TestCase):
     _service = 'security'
 
     def test_list_plugins(self):
-        resp, body = self.client.get("v1/plugins")
+        resp, body = self.security_client.get("v1/plugins")
         self.assertEqual(200, resp.status)

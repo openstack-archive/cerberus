@@ -161,11 +161,15 @@ class TestPlugin(base.PluginBase):
                     'event': event_type,
                     'payload': payload})
         if ('START' in payload['name']and self.task_id is None):
-            self.task_id = self.manager.\
-                _add_recurrent_task(self.act_short,
-                                    1,
-                                    task_name='TEST_PLUGIN_START_PAYLOAD')
+            self.task_id = self.manager.create_task(
+                {},
+                self._uuid,
+                'act_short',
+                task_type='recurrent',
+                task_period=1,
+                task_name='TEST_PLUGIN_START_PAYLOAD')
             LOG.info('Start cycling task id %s', self.task_id)
+
         if ('STOP' in payload['name']):
             try:
                 self.manager._force_delete_recurrent_task(self.task_id)
