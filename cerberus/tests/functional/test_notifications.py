@@ -14,6 +14,7 @@
 #    limitations under the License.
 #
 import json
+import time
 
 from tempest import test
 from tempest_lib.common.utils import data_utils
@@ -61,3 +62,61 @@ class NotificationTests(base.TestCase):
         task_list_2 = json.loads(task_list_2)
         self.assertEqual(len(task_list_1.get('tasks', 0)) - 1,
                          len(task_list_2.get('tasks', 0)))
+
+    def test_notifier(self):
+
+        # Create a task to get security report from test_plugin
+        plugin_id = None
+        resp, body = self.security_client.get(
+            self.security_client._version + '/plugins',
+        )
+        plugins = json.loads(body).get('plugins', None)
+        if plugins is not None:
+            for plugin in plugins:
+                if (plugin.get('name', None) ==
+                        'cerberus.plugins.test_plugin.TestPlugin'):
+                    plugin_id = plugin.get('uuid', None)
+
+        self.assertIsNotNone(plugin_id,
+                             message='cerberus.plugins.test_plugin.TestPlugin '
+                                     'must exist and have an id')
+
+        # Count the number of security.security_report sample
+        # todo(rza): delete the sample at the end if possible
+        resp = self.mgr.telemetry_client.list_samples(
+            'security.security_report.store')
+        samples_number = len(resp)
+
+        time.sleep(5)
+
+        task = {
+            "name": "get_security_reports_test_plugin",
+            "method": "get_security_reports",
+            "plugin_id": plugin_id,
+            "type": "unique"
+        }
+        headers = {'content-type': 'application/json'}
+        resp, body = self.security_client.post(
+            self.security_client._version + '/tasks', json.dumps(task),
+            headers=headers)
+        self.assertEqual(200, resp.status)
+
+        # Check if secu[rity report has been stored in db and delete it
+        report_id = 'test_plugin_report_id'
+        resp, body = self.security_client.get(
+            self.security_client._version + '/security_reports/' + report_id)
+        report = json.loads(body)
+        self.assertEqual('a1d869a1-6ab0-4f02-9e56-f83034bacfcb',
+                         report['component_id'])
+        self.assertEqual(200, resp.status)
+
+        # Delete security report
+        resp, body = self.security_client.delete(
+            self.security_client._version + '/security_reports/' + report_id)
+
+        self.assertEqual(204, resp.status)
+
+        # Check if a sample has been created in Ceilometer
+        resp = self.mgr.telemetry_client.list_samples(
+            'security.security_report.store')
+        self.assertEqual(samples_number + 1, len(resp))

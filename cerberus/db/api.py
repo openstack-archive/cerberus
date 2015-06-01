@@ -81,6 +81,11 @@ def security_report_get_from_report_id(report_id):
     return IMPL.security_report_get_from_report_id(report_id)
 
 
+def security_report_delete(report_id):
+    """Delete security report from its report identifier"""
+    return IMPL.security_report_delete(report_id)
+
+
 def plugins_info_get():
     """Get information about plugins stored in db"""
     return IMPL.plugins_info_get()

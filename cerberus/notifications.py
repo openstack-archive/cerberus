@@ -84,6 +84,8 @@ def send_notification(operation, resource_type, payload):
     notifier = _get_notifier()
     if notifier:
         try:
+            LOG.info('Sending %(event_type)s notification...',
+                     {'event_type': event_type})
             notifier.info(context, event_type, payload)
         except Exception:
             LOG.exception(_(

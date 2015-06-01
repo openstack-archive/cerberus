@@ -154,12 +154,12 @@ def security_report_get_all(project_id=None):
     return _security_report_get_all(project_id=project_id)
 
 
-def _security_report_get(id):
+def _security_report_get(report_id):
     try:
         session = get_session()
-        return model_query(models.SecurityReport, read_deleted="no",
-                           session=session).filter(models.SecurityReport.
-                                                   id == id).first()
+        return model_query(
+            models.SecurityReport, read_deleted="no", session=session).filter(
+            models.SecurityReport.report_id == report_id).first()
     except Exception as e:
         LOG.exception(e)
         raise exception.DBException()
@@ -183,6 +183,21 @@ def _security_report_get_from_report_id(report_id):
 
 def security_report_get_from_report_id(report_id):
     return _security_report_get_from_report_id(report_id)
+
+
+def _security_report_delete(report_id):
+    try:
+        session = get_session()
+        report = model_query(models.SecurityReport, read_deleted="no",
+                             session=session).filter_by(report_id=report_id)
+        report.delete()
+    except Exception as e:
+        LOG.exception(e)
+        raise exception.DBException()
+
+
+def security_report_delete(report_id):
+    return _security_report_delete(report_id)
 
 
 def _plugin_info_create(values):
