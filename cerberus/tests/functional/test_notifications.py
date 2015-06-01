@@ -27,6 +27,7 @@ class NotificationTests(base.TestCase):
     _service = 'security'
 
     @test.attr(type='gate')
+    @test.services("image")
     def test_notification_image(self):
 
         # Create image
@@ -63,6 +64,7 @@ class NotificationTests(base.TestCase):
         self.assertEqual(len(task_list_1.get('tasks', 0)) - 1,
                          len(task_list_2.get('tasks', 0)))
 
+    @test.services("telemetry")
     def test_notifier(self):
 
         # Create a task to get security report from test_plugin
@@ -87,10 +89,8 @@ class NotificationTests(base.TestCase):
             'security.security_report.store')
         samples_number = len(resp)
 
-        time.sleep(5)
-
         task = {
-            "name": "get_security_reports_test_plugin",
+            "name": "test_notifier",
             "method": "get_security_reports",
             "plugin_id": plugin_id,
             "type": "unique"
@@ -117,6 +117,7 @@ class NotificationTests(base.TestCase):
         self.assertEqual(204, resp.status)
 
         # Check if a sample has been created in Ceilometer
+        time.sleep(5)
         resp = self.mgr.telemetry_client.list_samples(
             'security.security_report.store')
         self.assertEqual(samples_number + 1, len(resp))
