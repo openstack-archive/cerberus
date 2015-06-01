@@ -85,19 +85,15 @@ class SecurityReportController(base.BaseController):
     def __init__(self, report_id):
         super(SecurityReportController, self).__init__()
         pecan.request.context['report_id'] = report_id
-        try:
-            self._id = int(report_id)
-        except ValueError:
-            raise exc.HTTPBadRequest(
-                explanation='Security report id must be an integer')
+        self._id = report_id
 
-    def get_security_report(self, id):
+    def get_security_report(self, report_id):
         try:
-            security_report = db.security_report_get(id)
+            security_report = db.security_report_get(report_id)
         except Exception as e:
             LOG.exception(e)
             raise errors.DbError(
-                "Security report %s could not be retrieved" % id
+                "Security report %s could not be retrieved" % report_id
             )
         return security_report
 
@@ -113,6 +109,8 @@ class SecurityReportController(base.BaseController):
         try:
             security_report = self.get_security_report(self._id)
         except errors.DbError:
+            raise exc.HTTPNotFound()
+        if security_report is None:
             raise exc.HTTPNotFound()
         s_report = models.SecurityReportJsonSerializer().\
             serialize(security_report)
@@ -130,4 +128,17 @@ class SecurityReportController(base.BaseController):
         try:
             db.security_report_update_ticket_id(self._id, ticket_id)
         except Exception:
+            raise exc.HTTPNotFound()
+
+    @wsme_pecan.wsexpose()
+    def delete(self):
+        """Delete the security report stored in db.
+
+        :raises:
+            HTTPNotFound: Report not found or any database error
+        """
+        try:
+            db.security_report_delete(self._id)
+        except Exception as e:
+            LOG.exception(e)
             raise exc.HTTPNotFound()

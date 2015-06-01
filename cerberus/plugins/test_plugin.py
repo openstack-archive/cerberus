@@ -19,7 +19,7 @@ import json
 
 from cerberus.common import exception as cerberus_exception
 from cerberus.common import json_encoders
-from cerberus.db import api as db_api
+from cerberus import manager as cerberus_manager
 from cerberus.openstack.common import log
 from cerberus.plugins import base
 
@@ -119,35 +119,23 @@ class TestPlugin(base.PluginBase):
                                    'services': [333, 335, 337, 339],
                                    'host_id': 328, 'id': 329}}}
 
-            report_id = 1
+            report_id = 'test_plugin_report_id'
             if (security_report.get('stat'), False):
                 vulnerabilities_number = security_report['stat']\
                     .get('vulns', None)
-            try:
-                db_api.security_report_create(
-                    {'title': 'Security report',
-                     'plugin_id': self._uuid,
-                     'report_id': report_id,
-                     'component_id': 'a1d869a1-6ab0-4f02-9e56-f83034bacfcb',
-                     'component_type': 'instance',
-                     'component_name': 'openstack-test-server',
-                     'project_id': '510c7f4ed14243f09df371bba2561177',
-                     'description': 'openstack-test-server',
-                     'security_rating': security_report['stat']['grade'],
-                     'vulnerabilities': json.dumps(
-                         security_report['vulns'],
-                         cls=json_encoders.DateTimeEncoder),
-                     'vulnerabilities_number': vulnerabilities_number}
-                )
-            except cerberus_exception.DBException as e:
-                LOG.exception(e)
-                pass
+
+            cerberus_manager.store_report_and_notify(
+                'Test security report', self._uuid, report_id,
+                'a1d869a1-6ab0-4f02-9e56-f83034bacfcb',
+                'openstack-test-server', 'instance',
+                '510c7f4ed14243f09df371bba2561177',
+                'openstack-test-server', security_report['stat']['grade'],
+                json.dumps(security_report['vulns'],
+                           cls=json_encoders.DateTimeEncoder),
+                vulnerabilities_number,
+                datetime.datetime(2015, 6, 1, 10, 11, 59))
             security_reports.append(security_report)
-            db_report_id = db_api.security_report_get_from_report_id(
-                report_id).id
-            db_api.security_report_update_last_report_date(
-                db_report_id, datetime.datetime(2015, 5, 6, 16, 19, 29))
-        except Exception as e:
+        except cerberus_exception.DBException as e:
             LOG.exception(e)
             pass
         return security_reports
