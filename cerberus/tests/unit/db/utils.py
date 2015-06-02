@@ -122,7 +122,7 @@ def get_test_task(**kwargs):
         'type': kwargs.get('task_type', 'unique'),
         'name': kwargs.get('task_name', 'No Name'),
         'period': kwargs.get('task_period', ''),
-        'persistent': 'false',
+        'persistent': False,
     }
 
 

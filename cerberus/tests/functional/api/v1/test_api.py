@@ -180,7 +180,7 @@ class TaskTestsV1(base.TestCase):
             'plugin_id': plugin_id,
             'type': 'recurrent',
             'period': 3,
-            'persistent': 'True'
+            'persistent': True
         }
         headers = {'content-type': 'application/json'}
         resp, body = self.security_client.post(
@@ -196,7 +196,7 @@ class TaskTestsV1(base.TestCase):
             headers=headers)
         self.assertEqual(200, resp.status)
         self.assertEqual(task_id, json.loads(body)['id'])
-        self.assertEqual('True', json.loads(body)['persistent'])
+        self.assertEqual(True, json.loads(body)['persistent'])
         self.assertEqual('recurrent', json.loads(body)['type'])
         self.assertEqual('running', json.loads(body)['state'])
         self.assertEqual(3, json.loads(body)['period'])
@@ -212,7 +212,7 @@ class TaskTestsV1(base.TestCase):
             headers=headers)
         self.assertEqual(200, resp.status)
         self.assertEqual(task_id, json.loads(body)['id'])
-        self.assertEqual('True', json.loads(body)['persistent'])
+        self.assertEqual(True, json.loads(body)['persistent'])
         self.assertEqual('recurrent', json.loads(body)['type'])
         self.assertEqual('stopped', json.loads(body)['state'])
         self.assertEqual(3, json.loads(body)['period'])
@@ -228,7 +228,7 @@ class TaskTestsV1(base.TestCase):
             headers=headers)
         self.assertEqual(200, resp.status)
         self.assertEqual(task_id, json.loads(body)['id'])
-        self.assertEqual('True', json.loads(body)['persistent'])
+        self.assertEqual(True, json.loads(body)['persistent'])
         self.assertEqual('recurrent', json.loads(body)['type'])
         self.assertEqual('running', json.loads(body)['state'])
         self.assertEqual(3, json.loads(body)['period'])
