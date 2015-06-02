@@ -54,18 +54,18 @@ class TaskDeletionNotAllowed(InvalidOperation):
         )
 
 
-class TaskRestartNotAllowed(InvalidOperation):
+class TaskStartNotAllowed(InvalidOperation):
     def __init__(self, _id):
-        super(TaskRestartNotAllowed, self).__init__(
-            _("Restarting task %s is not allowed because either it "
+        super(TaskStartNotAllowed, self).__init__(
+            _("Starting task %s is not allowed because either it "
               "does not exist or it is not recurrent") % _id
         )
 
 
-class TaskRestartNotPossible(InvalidOperation):
+class TaskStartNotPossible(InvalidOperation):
     def __init__(self, _id):
-        super(TaskRestartNotPossible, self).__init__(
-            _("Restarting task %s is not possible because it is running") % _id
+        super(TaskStartNotPossible, self).__init__(
+            _("Starting task %s is not possible because it is running") % _id
         )
 
 

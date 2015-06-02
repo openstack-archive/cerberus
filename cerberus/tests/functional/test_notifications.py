@@ -117,7 +117,7 @@ class NotificationTests(base.TestCase):
         self.assertEqual(204, resp.status)
 
         # Check if a sample has been created in Ceilometer
-        time.sleep(5)
+        time.sleep(10)
         resp = self.mgr.telemetry_client.list_samples(
             'security.security_report.store')
         self.assertEqual(samples_number + 1, len(resp))
