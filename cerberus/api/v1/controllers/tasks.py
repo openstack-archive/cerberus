@@ -31,7 +31,7 @@ from cerberus.openstack.common import log
 LOG = log.getLogger(__name__)
 
 
-action_kind = ["stop", "restart", "force_delete"]
+action_kind = ["stop", "start", "force_delete"]
 action_kind_enum = wtypes.Enum(str, *action_kind)
 
 
@@ -39,7 +39,7 @@ class ActionController(base.BaseController):
     _custom_actions = {
         'stop': ['POST'],
         'force_delete': ['POST'],
-        'restart': ['POST'],
+        'start': ['POST'],
     }
 
     @wsme_pecan.wsexpose(None, wtypes.text)
@@ -68,14 +68,14 @@ class ActionController(base.BaseController):
             raise exc.HTTPNotFound(explanation=e.value)
 
     @wsme_pecan.wsexpose(None, wtypes.text)
-    def restart(self, task_id):
-        """Restart delete task
+    def start(self, task_id):
+        """Start task
 
         :raises:
-            HTTPBadRequest: task not found or impossible to restart it
+            HTTPBadRequest: task not found or impossible to start it
         """
         try:
-            self.restart_task(task_id)
+            self.start_task(task_id)
         except rpc.RemoteError as e:
             raise exc.HTTPBadRequest(explanation=e.value)
 
@@ -97,11 +97,11 @@ class ActionController(base.BaseController):
             LOG.exception(e)
             raise
 
-    def restart_task(self, task_id):
+    def start_task(self, task_id):
         ctx = pecan.request.context.to_dict()
         try:
             self.client.call(ctx,
-                             'restart_recurrent_task',
+                             'start_recurrent_task',
                              task_id=task_id)
         except rpc.RemoteError as e:
             LOG.exception(e)

@@ -220,7 +220,7 @@ class TaskTestsV1(base.TestCase):
         # Start the task
         resp, body = self.security_client.post(
             self.security_client._version + '/tasks/' + task_id +
-            '/action/restart', json.dumps({}), headers=headers)
+            '/action/start', json.dumps({}), headers=headers)
         self.assertEqual(204, resp.status)
 
         resp, body = self.security_client.get(

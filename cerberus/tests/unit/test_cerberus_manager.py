@@ -419,7 +419,7 @@ class TestCerberusManager(base.TestBase):
         assert(recurrent_task.gt.dead is True)
         assert(len(self.manager.tg.timers) == 0)
 
-    def test_restart_recurrent_task(self):
+    def test_start_recurrent_task(self):
         ctxt = {'some': 'context'}
         db_api.update_state_task = mock.MagicMock()
         task_id = 1
@@ -432,7 +432,7 @@ class TestCerberusManager(base.TestBase):
         assert(self.manager.tg.timers[0]._running is True)
         self.manager._stop_recurrent_task(task_id)
         assert(self.manager.tg.timers[0]._running is False)
-        self.manager.restart_recurrent_task(ctxt, task_id)
+        self.manager.start_recurrent_task(ctxt, task_id)
         assert(self.manager.tg.timers[0]._running is True)
 
 
@@ -585,7 +585,7 @@ class FaultyTestCerberusManager(base.TestBaseFaulty):
         assert(recurrent_task.gt.dead is False)
         assert(len(self.manager.tg.timers) == 1)
 
-    def test_restart_recurrent_task_wrong_id(self):
+    def test_start_recurrent_task_wrong_id(self):
         ctxt = {"some": "ctx"}
         db_api.update_state_task = mock.MagicMock()
         task_id = 1
@@ -596,13 +596,13 @@ class FaultyTestCerberusManager(base.TestBaseFaulty):
         assert(self.manager.tg.timers[0]._running is True)
         self.manager._stop_recurrent_task(task_id)
         assert(self.manager.tg.timers[0]._running is False)
-        self.assertRaises(errors.TaskRestartNotAllowed,
-                          self.manager.restart_recurrent_task,
+        self.assertRaises(errors.TaskStartNotAllowed,
+                          self.manager.start_recurrent_task,
                           ctxt,
                           task_id + 1)
         assert(self.manager.tg.timers[0]._running is False)
 
-    def test_restart_recurrent_task_running(self):
+    def test_start_recurrent_task_running(self):
         ctxt = {"some": "ctx"}
         task_id = 1
         self.manager._add_recurrent_task(
@@ -610,8 +610,8 @@ class FaultyTestCerberusManager(base.TestBaseFaulty):
             5,
             task_id=task_id)
         assert(self.manager.tg.timers[0]._running is True)
-        self.assertRaises(errors.TaskRestartNotPossible,
-                          self.manager.restart_recurrent_task,
+        self.assertRaises(errors.TaskStartNotPossible,
+                          self.manager.start_recurrent_task,
                           ctxt,
                           task_id)
         assert(self.manager.tg.timers[0]._running is True)

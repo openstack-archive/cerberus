@@ -387,7 +387,7 @@ class CerberusManager(service.CerberusService):
     def _stop_recurrent_task(self, task_id):
         """Stop the recurrent task but does not remove it from the ThreadGroup.
 
-        The task still exists and could be restarted. Plus, if the task is
+        The task still exists and could be started. Plus, if the task is
          running, wait for the end of its execution
         :param task_id: the id of the recurrent task to stop
         :return:
@@ -556,18 +556,18 @@ class CerberusManager(service.CerberusService):
             return json.dumps(task,
                               cls=base.ThreadEncoder)
 
-    def _restart_recurrent_task(self, task_id):
+    def _start_recurrent_task(self, task_id):
         """
-        Restart the task
-        :param task_id: the identifier of the task to restart
+        Start the task
+        :param task_id: the identifier of the task to start
         :return:
         """
         recurrent_task = self._get_recurrent_task(task_id)
         if (recurrent_task is None):
-            raise errors.TaskRestartNotAllowed(str(task_id))
+            raise errors.TaskStartNotAllowed(str(task_id))
         period = recurrent_task.kw.get("task_period", None)
         if recurrent_task._running is True:
-            raise errors.TaskRestartNotPossible(str(task_id))
+            raise errors.TaskStartNotPossible(str(task_id))
         else:
             try:
                 recurrent_task.start(int(period))
@@ -577,16 +577,16 @@ class CerberusManager(service.CerberusService):
                 LOG.exception(e)
                 raise e
 
-    def restart_recurrent_task(self, ctx, task_id):
+    def start_recurrent_task(self, ctx, task_id):
         '''
         This method is designed to be called by an rpc client.
         E.g: Cerberus-api
-        Restart a recurrent task after it's being stopped
+        Start a recurrent task after it's being stopped
         :param ctx: a request context dict supplied by client
-        :param task_id: the identifier of the task to restart
+        :param task_id: the identifier of the task to start
         '''
         try:
-            self._restart_recurrent_task(task_id)
+            self._start_recurrent_task(task_id)
         except errors.InvalidOperation:
             raise
         return task_id
