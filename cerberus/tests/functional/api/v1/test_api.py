@@ -155,7 +155,7 @@ class TaskTestsV1(base.TestCase):
         )
         self.assertEqual(204, resp.status)
 
-    def test_create_get_stop_delete_recurrent_task_persistent(self):
+    def test_create_get_stop_start_delete_recurrent_task_persistent(self):
 
         # Get test_plugin
         plugin_id = None
@@ -215,6 +215,22 @@ class TaskTestsV1(base.TestCase):
         self.assertEqual('True', json.loads(body)['persistent'])
         self.assertEqual('recurrent', json.loads(body)['type'])
         self.assertEqual('stopped', json.loads(body)['state'])
+        self.assertEqual(3, json.loads(body)['period'])
+
+        # Start the task
+        resp, body = self.security_client.post(
+            self.security_client._version + '/tasks/' + task_id +
+            '/action/restart', json.dumps({}), headers=headers)
+        self.assertEqual(204, resp.status)
+
+        resp, body = self.security_client.get(
+            self.security_client._version + '/tasks/' + task_id,
+            headers=headers)
+        self.assertEqual(200, resp.status)
+        self.assertEqual(task_id, json.loads(body)['id'])
+        self.assertEqual('True', json.loads(body)['persistent'])
+        self.assertEqual('recurrent', json.loads(body)['type'])
+        self.assertEqual('running', json.loads(body)['state'])
         self.assertEqual(3, json.loads(body)['period'])
 
         # Delete the task
