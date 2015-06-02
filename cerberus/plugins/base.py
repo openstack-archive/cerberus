@@ -140,7 +140,7 @@ class FixedIntervalLoopingCallEncoder(json.JSONEncoder):
                 'period': obj.kw.get('task_period', None),
                 'type': obj.kw.get('task_type', None),
                 'plugin_id': obj.kw.get('plugin_id', None),
-                'persistent': obj.kw.get('persistent', 'False'),
+                'persistent': obj.kw.get('persistent', False),
                 'state': state}
 
 

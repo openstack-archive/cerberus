@@ -43,7 +43,7 @@ class TaskResource(base.Base):
     type = wtypes.wsattr(wtypes.text, default="unique")
     """Type of the task."""
 
-    persistent = wtypes.wsattr(wtypes.text, default="false")
+    persistent = wtypes.wsattr(bool, default=False)
     """If task must persist."""
 
     def as_dict(self):

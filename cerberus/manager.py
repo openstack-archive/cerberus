@@ -141,7 +141,7 @@ class CerberusManager(service.CerberusService):
             kwargs['task_period'] = task.period
             kwargs['task_id'] = task.uuid
             kwargs['running'] = task.running
-            kwargs['persistent'] = 'True'
+            kwargs['persistent'] = True
             self._add_task(task.plugin_id, task.method, **kwargs)
 
     def start(self):
@@ -376,7 +376,7 @@ class CerberusManager(service.CerberusService):
                                   task_id=str(task_id), **kwargs)
         except Exception:
             raise
-        if kwargs.get('persistent', '') == 'True':
+        if kwargs.get('persistent', False) is True:
             try:
                 self._store_task(task, method_)
             except Exception as e:
@@ -398,7 +398,7 @@ class CerberusManager(service.CerberusService):
         if recurrent_task is None:
             raise errors.TaskNotFound(task_id)
         recurrent_task.stop()
-        if recurrent_task.kw.get('persistent', '') == 'True':
+        if recurrent_task.kw.get('persistent', False) is True:
             try:
                 db_api.update_state_task(task_id, False)
             except Exception as e:
@@ -413,7 +413,7 @@ class CerberusManager(service.CerberusService):
         if unique_task is None:
             raise errors.TaskNotFound(task_id)
         unique_task.stop()
-        if unique_task.kw.get('persistent', '') == 'True':
+        if unique_task.kw.get('persistent', False) is True:
             try:
                 db_api.delete_task(task_id)
             except Exception as e:
@@ -455,7 +455,7 @@ class CerberusManager(service.CerberusService):
             self.tg.timers.remove(recurrent_task)
         except ValueError:
             raise
-        if recurrent_task.kw.get('persistent', '') == 'True':
+        if recurrent_task.kw.get('persistent', False) is True:
             try:
                 db_api.delete_task(task_id)
             except Exception as e:
@@ -493,7 +493,7 @@ class CerberusManager(service.CerberusService):
             self.tg.timers.remove(recurrent_task)
         except ValueError:
             raise
-        if recurrent_task.kw.get('persistent', '') == 'True':
+        if recurrent_task.kw.get('persistent', False) is True:
             try:
                 db_api.delete_task(task_id)
             except Exception as e:
@@ -571,7 +571,7 @@ class CerberusManager(service.CerberusService):
         else:
             try:
                 recurrent_task.start(int(period))
-                if recurrent_task.kw.get('persistent', '') == 'True':
+                if recurrent_task.kw.get('persistent', False) is True:
                     db_api.update_state_task(task_id, True)
             except Exception as e:
                 LOG.exception(e)
