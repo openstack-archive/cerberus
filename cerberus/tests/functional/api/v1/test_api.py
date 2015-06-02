@@ -120,7 +120,7 @@ class TaskTestsV1(base.TestCase):
             headers=headers)
         self.assertEqual(200, resp.status)
 
-    def test_create_recurrent_task_not_persistent(self):
+    def test_create_get_delete_recurrent_task_not_persistent(self):
         plugin_id = None
         resp, body = self.security_client.get(
             self.security_client._version + '/plugins',
@@ -232,3 +232,26 @@ class PluginTestsV1(base.TestCase):
         resp, body = self.security_client.get(
             self.security_client._version + '/plugins')
         self.assertEqual(200, resp.status)
+
+    def test_get_plugin(self):
+        # Get test_plugin
+        plugin_id = None
+        resp, body = self.security_client.get(
+            self.security_client._version + '/plugins',
+        )
+        plugins = json.loads(body).get('plugins', None)
+        if plugins is not None:
+            for plugin in plugins:
+                if (plugin.get('name', None) ==
+                        'cerberus.plugins.test_plugin.TestPlugin'):
+                    plugin_id = plugin.get('uuid', None)
+
+        self.assertIsNotNone(plugin_id,
+                             message='cerberus.plugins.test_plugin.TestPlugin '
+                                     'must exist and have an id')
+        resp, body = self.security_client.get(
+            self.security_client._version + '/plugins/' + plugin_id,
+        )
+        self.assertEqual(200, resp.status)
+        self.assertEqual('cerberus.plugins.test_plugin.TestPlugin',
+                         json.loads(body)['name'])
