@@ -1,0 +1,8 @@
+Verified+2: Jenkins
+Code-Review+2: Ziba <romain.ziba@eurogiciel.fr>
+Workflow+1: Ziba <romain.ziba@eurogiciel.fr>
+Submitted-by: Jenkins
+Submitted-at: Wed, 03 Jun 2015 09:48:26 +0000
+Reviewed-on: https://review.openstack.org/187617
+Project: stackforge/cerberus
+Branch: refs/heads/master
