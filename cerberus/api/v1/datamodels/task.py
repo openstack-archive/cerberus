@@ -43,7 +43,7 @@ class TaskResource(base.Base):
     type = wtypes.wsattr(wtypes.text, default="unique")
     """Type of the task."""
 
-    persistent = wtypes.wsattr(wtypes.text, default="false")
+    persistent = wtypes.wsattr(bool, default=False)
     """If task must persist."""
 
     def as_dict(self):
@@ -62,7 +62,7 @@ class TaskResource(base.Base):
         sample = cls(initial_data={
             'name': 'some_task',
             'period': decimal.Decimal(3),
-            'persistent': 'True',
+            'persistent': True,
             'state': 'running',
             'plugin_id': '063d4206-5afc-409c-a4d1-c2a469299d37',
             'type': 'recurrent',
