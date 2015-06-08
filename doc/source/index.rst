@@ -41,6 +41,15 @@ API References
    webapi/v1
 
 
+Plugin development
+==================
+
+.. toctree::
+   :maxdepth: 1
+
+   development_plugin
+
+
 Indices and tables
 ==================
 
