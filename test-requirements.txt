@@ -18,7 +18,7 @@ mox>=0.5.3,<=0.5.3
 tempest-lib>=0.5.0
 
 # Doc requirements
-sphinx>=1.1.2,!=1.2.0
+sphinx==1.2.3
 oslosphinx
 sphinxcontrib-httpdomain
 sphinxcontrib-pecanwsme>=0.8
