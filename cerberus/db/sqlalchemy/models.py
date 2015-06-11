@@ -80,8 +80,9 @@ class SecurityReport(BASE, CerberusBase):
     __table_args__ = ()
 
     id = Column(Integer, primary_key=True)
+    uuid = Column(String(255), unique=True)
     plugin_id = Column(String(255))
-    report_id = Column(String(255), unique=True)
+    report_id = Column(String(255))
     component_id = Column(String(255))
     component_type = Column(String(255))
     component_name = Column(String(255))
@@ -98,13 +99,13 @@ class SecurityReport(BASE, CerberusBase):
 class SecurityReportJsonSerializer(serialize.JsonSerializer):
     """Security report serializer"""
 
-    __attributes__ = ['id', 'title', 'description', 'plugin_id', 'report_id',
-                      'component_id', 'component_type', 'component_name',
-                      'project_id', 'security_rating', 'vulnerabilities',
-                      'vulnerabilities_number', 'last_report_date',
-                      'ticket_id', 'deleted', 'created_at', 'deleted_at',
-                      'updated_at']
-    __required__ = ['id', 'title', 'component_id']
+    __attributes__ = ['id', 'uuid', 'title', 'description', 'plugin_id',
+                      'report_id', 'component_id', 'component_type',
+                      'component_name', 'project_id', 'security_rating',
+                      'vulnerabilities', 'vulnerabilities_number',
+                      'last_report_date', 'ticket_id', 'deleted', 'created_at',
+                      'deleted_at', 'updated_at']
+    __required__ = ['uuid', 'title', 'component_id']
     __attribute_serializer__ = dict(created_at='date', deleted_at='date',
                                     acknowledged_at='date')
     __object_class__ = SecurityReport

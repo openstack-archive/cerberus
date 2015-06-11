@@ -82,18 +82,18 @@ class SecurityReportController(base.BaseController):
         'tickets': ['PUT']
     }
 
-    def __init__(self, report_id):
+    def __init__(self, uuid):
         super(SecurityReportController, self).__init__()
-        pecan.request.context['report_id'] = report_id
-        self._id = report_id
+        pecan.request.context['uuid'] = uuid
+        self._id = uuid
 
-    def get_security_report(self, report_id):
+    def get_security_report(self, uuid):
         try:
-            security_report = db.security_report_get(report_id)
+            security_report = db.security_report_get(uuid)
         except Exception as e:
             LOG.exception(e)
             raise errors.DbError(
-                "Security report %s could not be retrieved" % report_id
+                "Security report %s could not be retrieved" % uuid
             )
         return security_report
 

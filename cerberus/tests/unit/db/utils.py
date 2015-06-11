@@ -26,7 +26,7 @@ def fake_function():
 
 def get_test_security_report(**kwargs):
     return {
-        'id': kwargs.get('id', 1),
+        'uuid': kwargs.get('uuid', 1),
         'plugin_id': kwargs.get('plugin_id',
                                 '228df8e8-d5f4-4eb9-a547-dfc649dd1017'),
         'report_id': kwargs.get('report_id', '1234'),
@@ -49,7 +49,7 @@ def get_test_security_report(**kwargs):
 
 def get_security_report_model(**kwargs):
     security_report = models.SecurityReport()
-    security_report.id = kwargs.get('id', 1)
+    security_report.uuid = kwargs.get('uuid', 1)
     security_report.plugin_id = kwargs.get(
         'plugin_id',
         '228df8e8-d5f4-4eb9-a547-dfc649dd1017'

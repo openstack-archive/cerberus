@@ -18,6 +18,8 @@ import json
 
 from cerberus.tests.functional import base
 
+TEST_REPORT_ID = 'test_plugin_report_id'
+
 
 class AlarmTestsV1(base.TestCase):
 
@@ -67,10 +69,20 @@ class ReportTestsV1(base.TestCase):
             headers=headers)
         self.assertEqual(200, resp.status)
 
-        # Check if security report has been stored in db and delete it
-        report_id = 'test_plugin_report_id'
+        # Get uuid of the security report
         resp, body = self.security_client.get(
-            self.security_client._version + '/security_reports/' + report_id)
+            self.security_client._version + '/security_reports/')
+
+        report_uuid = ''
+        security_reports = json.loads(body).get('security_reports', [])
+        for security_report in security_reports:
+            if security_report['report_id'] == TEST_REPORT_ID:
+                report_uuid = security_report['uuid']
+
+        # Check if security report has been stored in db and delete it
+
+        resp, body = self.security_client.get(
+            self.security_client._version + '/security_reports/' + report_uuid)
         report = json.loads(body)
         self.assertEqual('a1d869a1-6ab0-4f02-9e56-f83034bacfcb',
                          report['component_id'])
@@ -78,7 +90,7 @@ class ReportTestsV1(base.TestCase):
 
         # Delete security report
         resp, body = self.security_client.delete(
-            self.security_client._version + '/security_reports/' + report_id)
+            self.security_client._version + '/security_reports/' + report_uuid)
 
         self.assertEqual(204, resp.status)
 

@@ -147,7 +147,8 @@ class DBException(CerberusException):
 
 
 class ReportExists(DBException):
-    msg_fmt = _("Report %(report_id)s already exists.")
+    msg_fmt = _("Report %(report_id)s already exists for plugin "
+                "%(plugin_id)s.")
 
 
 class PluginInfoExists(DBException):
