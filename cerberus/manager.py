@@ -51,8 +51,10 @@ def store_report_and_notify(title, plugin_id, report_id, component_id,
                             component_name, component_type, project_id,
                             description, security_rating, vulnerabilities,
                             vulnerabilities_number, last_report_date):
+    report_uuid = uuid.uuid4()
     report = {'title': title,
               'plugin_id': plugin_id,
+              'uuid': str(report_uuid),
               'report_id': report_id,
               'component_id': component_id,
               'component_type': component_type,
@@ -64,10 +66,8 @@ def store_report_and_notify(title, plugin_id, report_id, component_id,
               'vulnerabilities_number': vulnerabilities_number}
     try:
         db_api.security_report_create(report)
-        db_report_id = db_api.security_report_get_from_report_id(
-            report_id).id
         db_api.security_report_update_last_report_date(
-            db_report_id, last_report_date)
+            report_uuid, last_report_date)
         notifications.send_notification('store', 'security_report', report)
     except cerberus_exception.DBException:
         raise

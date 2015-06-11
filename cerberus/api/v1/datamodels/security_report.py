@@ -15,7 +15,7 @@
 #
 
 import datetime
-import decimal
+import uuid
 
 from cerberus.api.v1.datamodels import base
 from wsme import types as wtypes
@@ -25,14 +25,14 @@ class SecurityReportResource(base.Base):
     """ Representation of a security report.
     """
 
-    id = wtypes.IntegerType()
+    uuid = wtypes.wsattr(wtypes.text)
     """Security report id."""
 
     plugin_id = wtypes.wsattr(wtypes.text)
     """Associated plugin id."""
 
     report_id = wtypes.wsattr(wtypes.text)
-    """Associated report id."""
+    """Associated report id provided by plugin."""
 
     component_id = wtypes.wsattr(wtypes.text)
     """Associated component id."""
@@ -56,7 +56,7 @@ class SecurityReportResource(base.Base):
     """Security rating."""
 
     vulnerabilities = wtypes.wsattr(wtypes.text)
-    """Associated report id."""
+    """Vulnerabilities."""
 
     vulnerabilities_number = wtypes.IntegerType()
     """Total of Vulnerabilities."""
@@ -69,7 +69,7 @@ class SecurityReportResource(base.Base):
 
     def as_dict(self):
         return self.as_dict_from_keys(
-            ['id', 'plugin_id', 'report_id', 'component_id',
+            ['uuid', 'plugin_id', 'report_id', 'component_id',
              'component_type', 'component_name', 'project_id',
              'title', 'description', 'security_rating',
              'vulnerabilities', 'vulnerabilities_number',
@@ -85,7 +85,7 @@ class SecurityReportResource(base.Base):
     @classmethod
     def sample(cls):
         sample = cls(initial_data={
-            'id': decimal.Decimal(1),
+            'uuid': str(uuid.uuid4()),
             'security_rating': float(7.4),
             'component_name': 'openstack-server',
             'component_id': 'a1d869a1-6ab0-4f02-9e56-f83034bacfcb',

@@ -90,7 +90,8 @@ def _security_report_create(values):
         security_report_ref.save()
     except db_exc.DBDuplicateEntry as e:
         LOG.exception(e)
-        raise exception.ReportExists(report_id=values['report_id'])
+        raise exception.ReportExists(report_id=values['report_id'],
+                                     plugin_id=values['plugin_id'])
     except Exception as e:
         LOG.exception(e)
         raise exception.DBException()
@@ -101,12 +102,12 @@ def security_report_create(values):
     return _security_report_create(values)
 
 
-def _security_report_update_last_report_date(report_id, date):
+def _security_report_update_last_report_date(uuid, date):
     try:
         session = get_session()
         report = model_query(models.SecurityReport, read_deleted="no",
-                             session=session).filter(models.SecurityReport.id
-                                                     == report_id).first()
+                             session=session).filter(models.SecurityReport.uuid
+                                                     == uuid).first()
         report.last_report_date = date
         report.save(session)
     except Exception as e:
@@ -114,16 +115,16 @@ def _security_report_update_last_report_date(report_id, date):
         raise exception.DBException()
 
 
-def security_report_update_last_report_date(report_id, date):
-    _security_report_update_last_report_date(report_id, date)
+def security_report_update_last_report_date(uuid, date):
+    _security_report_update_last_report_date(uuid, date)
 
 
-def _security_report_update_ticket_id(report_id, ticket_id):
+def _security_report_update_ticket_id(uuid, ticket_id):
     try:
         session = get_session()
         report = model_query(models.SecurityReport, read_deleted="no",
-                             session=session).filter(models.SecurityReport.id
-                                                     == report_id).first()
+                             session=session).filter(models.SecurityReport.uuid
+                                                     == uuid).first()
         report.ticket_id = ticket_id
         report.save(session)
     except Exception as e:
@@ -131,8 +132,8 @@ def _security_report_update_ticket_id(report_id, ticket_id):
         raise exception.DBException()
 
 
-def security_report_update_ticket_id(report_id, ticket_id):
-    _security_report_update_ticket_id(report_id, ticket_id)
+def security_report_update_ticket_id(uuid, ticket_id):
+    _security_report_update_ticket_id(uuid, ticket_id)
 
 
 def _security_report_get_all(project_id=None):
@@ -154,19 +155,19 @@ def security_report_get_all(project_id=None):
     return _security_report_get_all(project_id=project_id)
 
 
-def _security_report_get(report_id):
+def _security_report_get(uuid):
     try:
         session = get_session()
         return model_query(
             models.SecurityReport, read_deleted="no", session=session).filter(
-            models.SecurityReport.report_id == report_id).first()
+            models.SecurityReport.uuid == uuid).first()
     except Exception as e:
         LOG.exception(e)
         raise exception.DBException()
 
 
-def security_report_get(id):
-    return _security_report_get(id)
+def security_report_get(uuid):
+    return _security_report_get(uuid)
 
 
 def _security_report_get_from_report_id(report_id):
@@ -185,19 +186,19 @@ def security_report_get_from_report_id(report_id):
     return _security_report_get_from_report_id(report_id)
 
 
-def _security_report_delete(report_id):
+def _security_report_delete(uuid):
     try:
         session = get_session()
         report = model_query(models.SecurityReport, read_deleted="no",
-                             session=session).filter_by(report_id=report_id)
+                             session=session).filter_by(uuid=uuid)
         report.delete()
     except Exception as e:
         LOG.exception(e)
         raise exception.DBException()
 
 
-def security_report_delete(report_id):
-    return _security_report_delete(report_id)
+def security_report_delete(uuid):
+    return _security_report_delete(uuid)
 
 
 def _plugin_info_create(values):

@@ -56,14 +56,14 @@ def security_report_create(values):
     return IMPL.security_report_create(values)
 
 
-def security_report_update_last_report_date(id, date):
+def security_report_update_last_report_date(uuid, date):
     """Create an instance from the values dictionary."""
-    return IMPL.security_report_update_last_report_date(id, date)
+    return IMPL.security_report_update_last_report_date(uuid, date)
 
 
-def security_report_update_ticket_id(id, ticket_id):
+def security_report_update_ticket_id(uuid, ticket_id):
     """Create an instance from the values dictionary."""
-    return IMPL.security_report_update_ticket_id(id, ticket_id)
+    return IMPL.security_report_update_ticket_id(uuid, ticket_id)
 
 
 def security_report_get_all(project_id=None):
@@ -71,9 +71,9 @@ def security_report_get_all(project_id=None):
     return IMPL.security_report_get_all(project_id=project_id)
 
 
-def security_report_get(id):
+def security_report_get(uuid):
     """Get security report from its id in database"""
-    return IMPL.security_report_get(id)
+    return IMPL.security_report_get(uuid)
 
 
 def security_report_get_from_report_id(report_id):

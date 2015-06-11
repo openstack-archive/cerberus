@@ -32,27 +32,27 @@ class TestSecurityReports(base.TestApiBase):
     def setUp(self):
         super(TestSecurityReports, self).setUp()
         self.fake_security_report = db_utils.get_test_security_report(
-            id=SECURITY_REPORT_ID
+            uuid=SECURITY_REPORT_ID
         )
         self.fake_security_reports = []
         self.fake_security_reports.append(self.fake_security_report)
         self.fake_security_reports.append(db_utils.get_test_security_report(
-            id=SECURITY_REPORT_ID_2
+            uuid=SECURITY_REPORT_ID_2
         ))
         self.fake_security_report_model = db_utils.get_security_report_model(
-            id=SECURITY_REPORT_ID
+            uuid=SECURITY_REPORT_ID
         )
         self.fake_security_reports_model = []
         self.fake_security_reports_model.append(
             self.fake_security_report_model)
         self.fake_security_reports_model.append(
             db_utils.get_security_report_model(
-                id=SECURITY_REPORT_ID_2
+                uuid=SECURITY_REPORT_ID_2
             )
         )
         self.security_reports_path = '/security_reports'
         self.security_report_path = '/security_reports/%s' \
-                                    % self.fake_security_report['report_id']
+                                    % self.fake_security_report['uuid']
 
     def test_get(self):
 
