@@ -104,7 +104,15 @@ class NotificationTests(base.TestCase):
         # Check if secu[rity report has been stored in db and delete it
         report_id = 'test_plugin_report_id'
         resp, body = self.security_client.get(
-            self.security_client._version + '/security_reports/' + report_id)
+            self.security_client._version + '/security_reports/')
+
+        i = 0
+        security_reports = json.loads(body)['security_reports']
+        while security_reports[i].get('report_id', None) != report_id:
+            i += 1
+        report_uuid = security_reports[i].get('uuid', None)
+        resp, body = self.security_client.get(
+            self.security_client._version + '/security_reports/' + report_uuid)
         report = json.loads(body)
         self.assertEqual('a1d869a1-6ab0-4f02-9e56-f83034bacfcb',
                          report['component_id'])
@@ -112,7 +120,7 @@ class NotificationTests(base.TestCase):
 
         # Delete security report
         resp, body = self.security_client.delete(
-            self.security_client._version + '/security_reports/' + report_id)
+            self.security_client._version + '/security_reports/' + report_uuid)
 
         self.assertEqual(204, resp.status)
 
