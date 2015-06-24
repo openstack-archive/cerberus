@@ -23,7 +23,6 @@ SHOULD include dedicated exception logging.
 """
 
 import functools
-import gettext as t
 import logging
 import sys
 import webob.exc
@@ -32,9 +31,8 @@ from oslo.config import cfg
 
 from cerberus.common import safe_utils
 from cerberus.openstack.common import excutils
+from cerberus.openstack.common.gettextutils import _  # noqa
 
-
-_ = t.gettext
 
 LOG = logging.getLogger(__name__)
 

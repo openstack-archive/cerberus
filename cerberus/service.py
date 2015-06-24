@@ -22,6 +22,7 @@ from oslo.config import cfg
 from oslo.messaging import rpc
 from stevedore import named
 
+from cerberus.openstack.common.gettextutils import _  # noqa
 from cerberus.openstack.common import log
 from cerberus import utils
 

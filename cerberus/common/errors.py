@@ -14,7 +14,7 @@
 #    limitations under the License.
 #
 
-from cerberus.openstack.common._i18n import _  # noqa
+from cerberus.openstack.common.gettextutils import _  # noqa
 
 
 class InvalidOperation(Exception):

@@ -20,6 +20,7 @@ from keystoneclient.middleware import auth_token
 
 from cerberus.common import exception
 from cerberus.common import safe_utils
+from cerberus.openstack.common.gettextutils import _  # noqa
 from cerberus.openstack.common import log
 
 LOG = log.getLogger(__name__)
