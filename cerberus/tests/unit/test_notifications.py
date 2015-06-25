@@ -27,7 +27,7 @@ from cerberus.tests.unit import base
 EXP_RESOURCE_TYPE = uuid.uuid4().hex
 
 
-class NotificationsTestCase(base.TestBase):
+class NotificationsTestCase(base.TestCase):
     def setUp(self):
         super(NotificationsTestCase, self).setUp()
         fixture = self.useFixture(moxstubout.MoxStubout())

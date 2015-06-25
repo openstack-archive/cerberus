@@ -73,7 +73,7 @@ class EntryPoint(object):
             "FooPkg-1.2-py2.4.egg")
 
 
-class TestCerberusManager(base.TestBase):
+class TestCerberusManager(base.WithDbTestCase):
 
     def setUp(self):
         super(TestCerberusManager, self).setUp()
@@ -339,7 +339,7 @@ class TestCerberusManager(base.TestBase):
         self.assertTrue(int(json.loads(task).get('id')) == recurrent_task_id)
         task_2 = self.manager.get_task({'some': 'context'}, 2)
         self.assertTrue(json.loads(task_2).get('name') == unique_task_name)
-        self.assertTrue(json.loads(task_2).get('id') == unique_task_id)
+        self.assertTrue(int(json.loads(task_2).get('id')) == unique_task_id)
 
     def test_stop_unique_task(self):
         task_id = 1
@@ -436,7 +436,7 @@ class TestCerberusManager(base.TestBase):
         assert(self.manager.tg.timers[0]._running is True)
 
 
-class FaultyTestCerberusManager(base.TestBaseFaulty):
+class FaultyTestCerberusManager(base.TestCaseFaulty):
 
     def setUp(self):
         super(FaultyTestCerberusManager, self).setUp()

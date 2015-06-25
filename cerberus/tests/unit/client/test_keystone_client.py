@@ -23,7 +23,7 @@ from cerberus.tests.unit import base
 cfg.CONF.import_group('service_credentials', 'cerberus.service')
 
 
-class TestKeystoneClient(base.TestBase):
+class TestKeystoneClient(base.TestCase):
 
     def setUp(self):
         super(TestKeystoneClient, self).setUp()

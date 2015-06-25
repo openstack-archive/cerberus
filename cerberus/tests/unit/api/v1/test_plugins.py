@@ -30,7 +30,7 @@ PLUGIN_ID_2 = 2
 PLUGIN_NAME_2 = 'toolyx'
 
 
-class TestPlugins(base.TestApiBase):
+class TestPlugins(base.TestApiCase):
 
     def setUp(self):
         super(TestPlugins, self).setUp()

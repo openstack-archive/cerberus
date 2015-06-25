@@ -135,7 +135,7 @@ class FixedIntervalLoopingCallEncoder(json.JSONEncoder):
             state = 'running'
         else:
             state = 'stopped'
-        return {'id': obj.kw.get('task_id', None),
+        return {'id': str(obj.kw.get('task_id', None)),
                 'name': obj.kw.get('task_name', None),
                 'period': obj.kw.get('task_period', None),
                 'type': obj.kw.get('task_type', None),
@@ -148,7 +148,7 @@ class ThreadEncoder(json.JSONEncoder):
     def default(self, obj):
         if not isinstance(obj, threadgroup.Thread):
             return super(ThreadEncoder, self).default(obj)
-        return {'id': obj.kw.get('task_id', None),
+        return {'id': str(obj.kw.get('task_id', None)),
                 'name': obj.kw.get('task_name', None),
                 'type': obj.kw.get('task_type', None),
                 'plugin_id': obj.kw.get('plugin_id', None),

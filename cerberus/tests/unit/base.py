@@ -18,21 +18,19 @@ import os
 from oslo.config import cfg
 from oslotest import base
 
+from cerberus.db import api as db_api
 from cerberus.tests.unit import config_fixture
 from cerberus.tests.unit import policy_fixture
-from cerberus.tests.unit import utils
 
 
 CONF = cfg.CONF
 
 
-class TestBase(base.BaseTestCase):
+class TestCase(base.BaseTestCase):
 
     """Test case base class for all unit tests."""
     def setUp(self):
-        super(TestBase, self).setUp()
-        utils.setup_dummy_db()
-        self.addCleanup(utils.reset_dummy_db)
+        super(TestCase, self).setUp()
         self.useFixture(config_fixture.ConfigFixture(CONF))
         self.policy = self.useFixture(policy_fixture.PolicyFixture())
 
@@ -52,5 +50,18 @@ class TestBase(base.BaseTestCase):
             return root
 
 
-class TestBaseFaulty(TestBase):
+class WithDbTestCase(TestCase):
+
+    def override_config(self, name, override, group=None):
+        CONF.set_override(name, override, group)
+        self.addCleanup(CONF.clear_override, name, group)
+
+    def setUp(self):
+        super(WithDbTestCase, self).setUp()
+        self.override_config('connection', "sqlite://", group='database')
+        db_api.setup_db()
+        self.addCleanup(db_api.drop_db)
+
+
+class TestCaseFaulty(TestCase):
     """This test ensures we aren't letting any exceptions go unhandled."""

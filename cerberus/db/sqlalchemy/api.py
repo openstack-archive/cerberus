@@ -20,7 +20,6 @@ import threading
 from oslo.config import cfg
 
 from cerberus.common import exception
-from cerberus.db.sqlalchemy import migration
 from cerberus.db.sqlalchemy import models
 from cerberus.openstack.common.db import exception as db_exc
 from cerberus.openstack.common.db.sqlalchemy import session as db_session
@@ -71,16 +70,6 @@ def model_query(model, *args, **kwargs):
     session = kwargs.get('session') or get_session()
     query = session.query(model, *args)
     return query
-
-
-def db_sync(engine, version=None):
-    """Migrate the database to `version` or the most recent version."""
-    return migration.db_sync(engine, version=version)
-
-
-def db_version(engine):
-    """Display the current database version."""
-    return migration.db_version(engine)
 
 
 def _security_report_create(values):

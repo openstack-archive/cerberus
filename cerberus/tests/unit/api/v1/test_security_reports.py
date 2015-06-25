@@ -27,7 +27,7 @@ SECURITY_REPORT_ID = 'abc123'
 SECURITY_REPORT_ID_2 = 'xyz789'
 
 
-class TestSecurityReports(base.TestApiBase):
+class TestSecurityReports(base.TestApiCase):
 
     def setUp(self):
         super(TestSecurityReports, self).setUp()

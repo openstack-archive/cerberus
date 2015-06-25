@@ -23,7 +23,7 @@ from cerberus.tests.unit import base
 cfg.CONF.import_group('service_credentials', 'cerberus.service')
 
 
-class TestNeutronClient(base.TestBase):
+class TestNeutronClient(base.TestCase):
 
     def setUp(self):
         super(TestNeutronClient, self).setUp()
