@@ -73,7 +73,7 @@ class EntryPoint(object):
             "FooPkg-1.2-py2.4.egg")
 
 
-class TestCerberusManager(base.TestBase):
+class TestCerberusManager(base.TestCase):
 
     def setUp(self):
         super(TestCerberusManager, self).setUp()
@@ -436,7 +436,7 @@ class TestCerberusManager(base.TestBase):
         assert(self.manager.tg.timers[0]._running is True)
 
 
-class FaultyTestCerberusManager(base.TestBaseFaulty):
+class FaultyTestCerberusManager(base.TestCaseFaulty):
 
     def setUp(self):
         super(FaultyTestCerberusManager, self).setUp()

@@ -23,7 +23,7 @@ from cerberus.tests.unit import base
 cfg.CONF.import_group('service_credentials', 'cerberus.service')
 
 
-class TestNovaClient(base.TestBase):
+class TestNovaClient(base.TestCase):
 
     @staticmethod
     def fake_servers_list(*args, **kwargs):

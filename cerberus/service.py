@@ -16,12 +16,11 @@
 
 import os
 import socket
-import sys
 
 from oslo.config import cfg
-from oslo.messaging import rpc
 from stevedore import named
 
+from cerberus.common import config
 from cerberus.openstack.common.gettextutils import _  # noqa
 from cerberus.openstack.common import log
 from cerberus import utils
@@ -127,8 +126,8 @@ def get_workers(name):
     return workers
 
 
-def prepare_service(argv=None):
-    rpc.set_defaults(control_exchange='cerberus')
+def prepare_service(argv=[]):
+    config.parse_args(argv)
     cfg.set_defaults(log.log_opts,
                      default_log_levels=['amqplib=WARN',
                                          'qpid.messaging=INFO',
@@ -136,9 +135,7 @@ def prepare_service(argv=None):
                                          'keystoneclient=INFO',
                                          'stevedore=INFO',
                                          'eventlet.wsgi.server=WARN',
-                                         'iso8601=WARN'
+                                         'iso8601=WARN',
+                                         'paramiko=WARN',
                                          ])
-    if argv is None:
-        argv = sys.argv
-    cfg.CONF(argv[1:], project='cerberus')
     log.setup('cerberus')

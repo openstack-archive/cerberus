@@ -39,7 +39,7 @@ class MockTask(object):
         self.method = method
 
 
-class TestTasks(base.TestApiBase):
+class TestTasks(base.TestApiCase):
 
     def setUp(self):
         super(TestTasks, self).setUp()

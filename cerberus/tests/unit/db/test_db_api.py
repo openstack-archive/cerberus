@@ -19,23 +19,25 @@ Tests for `db api` module.
 """
 
 import mock
-from oslo.config import fixture as fixture_config
 
-from cerberus.db.sqlalchemy import api
+from cerberus.db.sqlalchemy import api as db_api
 from cerberus.openstack.common.db.sqlalchemy import models as db_models
-from cerberus.tests.unit import base
+from cerberus.tests.unit.db import base
 
 
-class DbApiTestCase(base.TestBase):
+class DbApiTestCase(base.DbTestCase):
+
+    def setUp(self):
+        super(DbApiTestCase, self).setUp()
+        self.db_api = db_api.get_instance()
 
     def test_security_report_create(self):
-        self.CONF = self.useFixture(fixture_config.Config()).conf
-        self.CONF([], project='cerberus')
         db_models.ModelBase.save = mock.MagicMock()
-        report = api.security_report_create({'title': 'TitleSecurityReport',
-                                             'plugin_id': '123456789',
-                                             'description': 'The first',
-                                             'component_id': '1234'})
+        report = self.db_api.security_report_create(
+            {'title': 'TitleSecurityReport',
+             'plugin_id': '123456789',
+             'description': 'The first',
+             'component_id': '1234'})
 
         self.assertEqual('TitleSecurityReport', report.title)
         self.assertEqual('123456789', report.plugin_id)
@@ -43,18 +45,15 @@ class DbApiTestCase(base.TestBase):
         self.assertEqual('1234', report.component_id)
 
     def test_plugin_info_create(self):
-        self.CONF = self.useFixture(fixture_config.Config()).conf
-        self.CONF([], project='cerberus')
-        pi = api.plugin_info_create({'name': 'NameOfPlugin',
-                                     'uuid': '0000-aaaa-1111-bbbb'})
+        pi = self.db_api.plugin_info_create(
+            {'name': 'NameOfPlugin',
+             'uuid': '0000-aaaa-1111-bbbb'})
         self.assertTrue(pi.id >= 0)
 
     def test_plugin_info_get(self):
-        self.CONF = self.useFixture(fixture_config.Config()).conf
-        self.CONF([], project='cerberus')
+        self.db_api.plugin_info_create(
+            {'name': 'NameOfPluginToGet',
+             'uuid': '3333-aaaa-1111-bbbb'})
 
-        api.plugin_info_create({'name': 'NameOfPluginToGet',
-                                'uuid': '3333-aaaa-1111-bbbb'})
-
-        pi = api.plugin_info_get('NameOfPluginToGet')
+        pi = self.db_api.plugin_info_get('NameOfPluginToGet')
         self.assertEqual('NameOfPluginToGet', pi.name)

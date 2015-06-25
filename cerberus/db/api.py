@@ -26,11 +26,6 @@ _BACKEND_MAPPING = {'sqlalchemy': 'cerberus.db.sqlalchemy.api'}
 
 IMPL = db_api.DBAPI(CONF.database.backend, backend_mapping=_BACKEND_MAPPING,
                     lazy=True)
-''' JUNO:
-IMPL = db_api.DBAPI.from_config(cfg.CONF,
-                                backend_mapping=_BACKEND_MAPPING,
-                                lazy=True)
-'''
 
 
 def get_instance():
@@ -44,11 +39,6 @@ def get_engine():
 
 def get_session():
     return IMPL.get_session()
-
-
-def db_sync(engine, version=None):
-    """Migrate the database to `version` or the most recent version."""
-    return IMPL.db_sync(engine, version=version)
 
 
 def security_report_create(values):

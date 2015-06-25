@@ -25,10 +25,10 @@ from cerberus.tests.unit import base
 PATH_PREFIX = '/v1'
 
 
-class TestApiBase(base.TestBase):
+class TestApiCase(base.TestCase):
 
     def setUp(self):
-        super(TestApiBase, self).setUp()
+        super(TestApiCase, self).setUp()
         self.app = self._make_app()
         self.dbapi = dbapi.get_instance()
         cfg.CONF.set_override("auth_version",

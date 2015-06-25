@@ -28,7 +28,6 @@ from cerberus.openstack.common.db.sqlalchemy import models
 
 
 CONF = cfg.CONF
-BASE = declarative_base()
 
 
 class CerberusBase(models.SoftDeleteMixin,
@@ -45,8 +44,10 @@ class CerberusBase(models.SoftDeleteMixin,
 
         super(CerberusBase, self).save(session=session)
 
+Base = declarative_base(cls=CerberusBase)
 
-class PluginInfo(BASE, CerberusBase):
+
+class PluginInfo(Base, CerberusBase):
     """Plugin info"""
 
     __tablename__ = 'plugin_info'
@@ -73,7 +74,7 @@ class PluginInfoJsonSerializer(serialize.JsonSerializer):
     __object_class__ = PluginInfo
 
 
-class SecurityReport(BASE, CerberusBase):
+class SecurityReport(Base, CerberusBase):
     """Security Report"""
 
     __tablename__ = 'security_report'
@@ -111,7 +112,7 @@ class SecurityReportJsonSerializer(serialize.JsonSerializer):
     __object_class__ = SecurityReport
 
 
-class SecurityAlarm(BASE, CerberusBase):
+class SecurityAlarm(Base, CerberusBase):
     """Security alarm coming from Security Information and Event Manager
      for example
      """
@@ -145,7 +146,7 @@ class SecurityAlarmJsonSerializer(serialize.JsonSerializer):
     __object_class__ = SecurityAlarm
 
 
-class Task(BASE, CerberusBase):
+class Task(Base, CerberusBase):
     """Tasks for security purposes (e.g: daily scans...)
     """
     __tablename__ = 'task'
