@@ -181,7 +181,7 @@ function init_cerberus {
     # (Re)create cerberus database
     if is_service_enabled mysql postgresql; then
         recreate_database cerberus utf8
-        $CERBERUS_BIN_DIR/dbcreate --config-file $CERBERUS_CONF
+        $CERBERUS_BIN_DIR/cerberus-dbsync upgrade
     fi # Migrate cerberus database
 }
 
