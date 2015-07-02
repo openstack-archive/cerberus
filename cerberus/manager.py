@@ -120,12 +120,12 @@ class CerberusManager(service.CerberusService):
                                                         'uuid': uuid.uuid4(),
                                                         'version': version,
                                                         'provider':
-                                                            plugin.PROVIDER,
+                                                        plugin.PROVIDER,
                                                         'type': plugin.TYPE,
                                                         'description':
-                                                            plugin.DESCRIPTION,
+                                                        plugin.DESCRIPTION,
                                                         'tool_name':
-                                                            plugin.TOOL_NAME})
+                                                        plugin.TOOL_NAME})
         else:
             db_api.plugin_version_update(db_plugin_info.id, version)
 
