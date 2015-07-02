@@ -18,7 +18,7 @@ from wsgiref import simple_server
 
 from oslo.config import cfg
 
-import auth
+from cerberus.api import auth
 from cerberus.api import config as api_config
 from cerberus.api import hooks
 from cerberus.openstack.common import log as logging

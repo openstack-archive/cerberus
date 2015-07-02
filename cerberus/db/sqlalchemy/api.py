@@ -149,7 +149,7 @@ def _security_report_get(uuid):
         session = get_session()
         return model_query(
             models.SecurityReport, read_deleted="no", session=session).filter(
-            models.SecurityReport.uuid == uuid).first()
+                models.SecurityReport.uuid == uuid).first()
     except Exception as e:
         LOG.exception(e)
         raise exception.DBException()
@@ -162,10 +162,9 @@ def security_report_get(uuid):
 def _security_report_get_from_report_id(report_id):
     try:
         session = get_session()
-        return model_query(models.SecurityReport,
-                           read_deleted="no",
-                           session=session).filter(
-            models.SecurityReport.report_id == report_id).first()
+        return model_query(
+            models.SecurityReport, read_deleted="no", session=session).filter(
+                models.SecurityReport.report_id == report_id).first()
     except Exception as e:
         LOG.exception(e)
         raise exception.DBException()
@@ -178,8 +177,9 @@ def security_report_get_from_report_id(report_id):
 def _security_report_delete(uuid):
     try:
         session = get_session()
-        report = model_query(models.SecurityReport, read_deleted="no",
-                             session=session).filter_by(uuid=uuid)
+        report = model_query(
+            models.SecurityReport, read_deleted="no",
+            session=session).filter_by(uuid=uuid)
         report.delete()
     except Exception as e:
         LOG.exception(e)
@@ -307,10 +307,9 @@ def security_alarm_get_all():
 def _security_alarm_get(alarm_id):
     try:
         session = get_session()
-        return model_query(models.SecurityAlarm,
-                           read_deleted="no",
-                           session=session).filter(
-            models.SecurityAlarm.alarm_id == alarm_id).first()
+        return model_query(
+            models.SecurityAlarm, read_deleted="no", session=session).filter(
+                models.SecurityAlarm.alarm_id == alarm_id).first()
     except Exception as e:
         LOG.exception(e)
         raise exception.DBException()
@@ -323,10 +322,9 @@ def security_alarm_get(alarm_id):
 def _security_alarm_update_ticket_id(alarm_id, ticket_id):
     try:
         session = get_session()
-        alarm = model_query(models.SecurityAlarm,
-                            read_deleted="no",
-                            session=session).filter(
-            models.SecurityAlarm.alarm_id == alarm_id).first()
+        alarm = model_query(
+            models.SecurityAlarm, read_deleted="no", session=session).filter(
+                models.SecurityAlarm.alarm_id == alarm_id).first()
         alarm.ticket_id = ticket_id
 
         alarm.save(session)
