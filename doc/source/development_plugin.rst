@@ -19,30 +19,28 @@ Plugins
 Cerberus manager makes use of stevedore to load extensions dynamically.
 Plugins can:
 
-* subscribe to notifications sent through AMQP.
-* define a callable method (@webmethod) which will be invoked either once or
-periodically thanks to a task.
+    * subscribe to notifications sent through AMQP.
+    * define a callable method (@webmethod) which will be invoked either once or periodically thanks to a task.
 
 Notifications
 -------------
 
-Plugins must implement:
+Plugins must implement the method ``process_notification(self, ctxt, publisher_id, event_type, payload, metadata):``
+which receives an event message the plugin subscribed to.
 
-   ``process_notification(self, ctxt, publisher_id, event_type, payload, metadata):`` which receives an event message the plugin subscribed to
+For example, the ``test_plugin`` plugin listens to one event:
 
-In the ``test_plugin`` plugin, it listens to one event:
-
-* image.update
+    * image.update
 
 Tasks
 -----
 
 For a plugin to be invoked through a task, it must implement a method with
-decorator @webmethod
+decorator ``@webmethod``
 
-In the ``test_plugin`` plugin, it defines one callable method:
+For example, the ``test_plugin`` plugin defines one callable method:
 
-* get_security_reports
+    * get_security_reports
 
 
 Adding new plugins
