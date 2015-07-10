@@ -36,8 +36,8 @@ class CerberusThreadGroup(threadgroup.ThreadGroup):
         self.timers.append(pulse)
         return pulse
 
-    def add_timer(self, interval, callback, initial_delay=None,
-                  *args, **kwargs):
+    def add_cerberus_timer(self, interval, callback, initial_delay=None,
+                           *args, **kwargs):
         pulse = loopingcall.CerberusFixedIntervalLoopingCall(callback,
                                                              *args,
                                                              **kwargs)
@@ -46,7 +46,7 @@ class CerberusThreadGroup(threadgroup.ThreadGroup):
         self.timers.append(pulse)
         return pulse
 
-    def add_thread(self, callback, *args, **kwargs):
+    def add_cerberus_thread(self, callback, *args, **kwargs):
         gt = self.pool.spawn(callback, *args, **kwargs)
         th = CerberusThread(callback, gt, self, *args, **kwargs)
         self.threads.append(th)

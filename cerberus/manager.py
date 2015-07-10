@@ -23,12 +23,13 @@ from stevedore import extension
 
 from cerberus.common import errors
 from cerberus.common import exception as cerberus_exception
+from cerberus.common import loopingcall
 from cerberus.common import service
+from cerberus.common import threadgroup
+from cerberus import coordination
 from cerberus.db.sqlalchemy import api as db_api
 from cerberus import notifications
 from cerberus.openstack.common import log
-from cerberus.openstack.common import loopingcall
-from cerberus.openstack.common import threadgroup
 from plugins import base
 
 
@@ -40,6 +41,9 @@ OPTS = [
 ]
 
 cfg.CONF.register_opts(OPTS)
+
+cfg.CONF.import_opt('heartbeat', 'cerberus.coordination',
+                    group='coordination')
 
 LOG = log.getLogger(__name__)
 
@@ -104,6 +108,7 @@ class CerberusManager(service.CerberusService):
     def __init__(self):
         super(CerberusManager, self).__init__()
         self.notifier = None
+        self.partition_coordinator = coordination.PartitionCoordinator()
 
     def _register_plugin(self, extension):
         """Register plugin in database
@@ -183,9 +188,24 @@ class CerberusManager(service.CerberusService):
             self.notification_server = messaging.get_notification_listener(
                 transport, targets, plugins, executor='eventlet')
 
+            # Add a rpc client to respond to API in some cases
+            target_api_rpc_server = messaging.Target(topic='api_agent_rpc',
+                                                     server='api')
+
+            self.rpc_client = messaging.RPCClient(transport,
+                                                  target_api_rpc_server)
+
             LOG.info("RPC Server starting...")
             self.rpc_server.start()
             self.notification_server.start()
+        self.partition_coordinator.start()
+        self.partition_coordinator.join_group('cerberus-agents')
+        LOG.debug("Members of group cerberus-agents are:" + str(
+            self.partition_coordinator._get_members('cerberus-agents')))
+
+        # Verify that agent is still alive and part of the group
+        self.tg.add_timer(cfg.CONF.coordination.heartbeat,
+                          self.partition_coordinator.heartbeat)
 
     def _get_unique_task(self, task_id):
         """Get unique task (executed once) thanks to its identifier
@@ -223,7 +243,7 @@ class CerberusManager(service.CerberusService):
         :param kwargs: dict of keyword arguments to call the callback with
         :return the thread object that is created
         """
-        return self.tg.add_thread(callback, *args, **kwargs)
+        return self.tg.add_cerberus_thread(callback, *args, **kwargs)
 
     def _add_stopped_reccurent_task(self, callback, period, initial_delay=None,
                                     *args, **kwargs):
@@ -250,8 +270,8 @@ class CerberusManager(service.CerberusService):
         :param args: list of positional arguments to call the callback with
         :param kwargs: dict of keyword arguments to call the callback with
         """
-        return self.tg.add_timer(period, callback, initial_delay, *args,
-                                 **kwargs)
+        return self.tg.add_cerberus_timer(period, callback, initial_delay,
+                                          *args, **kwargs)
 
     def get_plugins(self, ctx):
         '''List plugins loaded by Cerberus manager
@@ -422,12 +442,12 @@ class CerberusManager(service.CerberusService):
 
     def _stop_task(self, task_id):
         task = self._get_task(task_id)
-        if isinstance(task, loopingcall.FixedIntervalLoopingCall):
+        if isinstance(task, loopingcall.CerberusFixedIntervalLoopingCall):
             try:
                 self._stop_recurrent_task(task_id)
             except errors.InvalidOperation:
                 raise
-        elif isinstance(task, threadgroup.Thread):
+        elif isinstance(task, threadgroup.CerberusThread):
             try:
                 self._stop_unique_task(task_id)
             except errors.InvalidOperation:
@@ -531,28 +551,32 @@ class CerberusManager(service.CerberusService):
         return task if task is not None else task_
 
     def get_tasks(self, ctx):
+        LOG.info("get_tasks")
         tasks_ = []
         tasks = self._get_tasks()
         for task in tasks:
-            if (isinstance(task, loopingcall.FixedIntervalLoopingCall)):
+            if (isinstance(task,
+                           loopingcall.CerberusFixedIntervalLoopingCall)):
                 tasks_.append(
                     json.dumps(task,
                                cls=base.FixedIntervalLoopingCallEncoder))
-            elif (isinstance(task, threadgroup.Thread)):
+            elif (isinstance(task, threadgroup.CerberusThread)):
                 tasks_.append(
                     json.dumps(task,
                                cls=base.ThreadEncoder))
-        return tasks_
+        # return tasks_
+        LOG.debug("tasks are: " + str(tasks_))
+        self.rpc_client.cast({}, '_tasks', response=tasks_)
 
     def get_task(self, ctx, task_id):
         try:
             task = self._get_task(task_id)
         except errors.InvalidOperation:
             raise
-        if isinstance(task, loopingcall.FixedIntervalLoopingCall):
+        if isinstance(task, loopingcall.CerberusFixedIntervalLoopingCall):
             return json.dumps(task,
                               cls=base.FixedIntervalLoopingCallEncoder)
-        elif isinstance(task, threadgroup.Thread):
+        elif isinstance(task, threadgroup.CerberusThread):
             return json.dumps(task,
                               cls=base.ThreadEncoder)
 
