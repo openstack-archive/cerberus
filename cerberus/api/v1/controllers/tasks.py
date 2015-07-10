@@ -16,16 +16,21 @@
 
 import json
 import pecan
+import threading
 from webob import exc
 import wsme
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from oslo.config import cfg
+from oslo import messaging
 from oslo.messaging import rpc
 
 from cerberus.api.v1.controllers import base
 from cerberus.api.v1.datamodels import task as task_models
+from cerberus import coordination
 from cerberus.openstack.common import log
+from cerberus.openstack.common import service
 
 
 LOG = log.getLogger(__name__)
@@ -108,24 +113,69 @@ class ActionController(base.BaseController):
             raise
 
 
-class TasksController(base.BaseController):
+class TasksController(base.BaseController, service.Service):
 
     action = ActionController()
 
     def __init__(self):
         super(TasksController, self).__init__()
+        self.tasks = []
+        self.responses = 0
+        self.partition_coordinator = coordination.PartitionCoordinator()
+        self.event = threading.Event()
+        self.start()
+
+    def start(self):
+        transport = messaging.get_transport(cfg.CONF)
+        server_rpc_target = messaging.Target(topic='api_agent_rpc',
+                                             server='api')
+        self.rpc_server = messaging.get_rpc_server(transport,
+                                                   server_rpc_target,
+                                                   [self],
+                                                   executor='eventlet')
+        self.rpc_server.start()
+        self.partition_coordinator.start()
+
+    # todo(rza): this method must be protected by a lock
+    def _tasks(self, ctx, **kwargs):
+        LOG.debug(kwargs)
+        agent_tasks = kwargs.get('response', [])
+        for task in agent_tasks:
+            self.tasks.append(task)
+        self.responses += 1
+        self.event.set()
+        self.event.clear()
 
     def list_tasks(self):
         ctx = pecan.request.context.to_dict()
         try:
-            tasks = self.client.call(ctx, 'get_tasks')
+            self.client.prepare(fanout=True).cast(ctx, 'get_tasks')
         except rpc.RemoteError as e:
             LOG.exception(e)
             raise
         tasks_resource = []
-        for task in tasks:
+        LOG.debug("responses before loop: " + str(self.responses))
+        LOG.debug("Number of active agents: " + str(
+            len(self.partition_coordinator._get_members(
+                'cerberus-agents'))))
+
+        # TODO(rza): != instead of <=    and  add a timeout
+        # we don't manage to use zake driver and agents are alone in their
+        # groups
+        i = 0
+        while ((self.responses <= len(self.partition_coordinator._get_members(
+                'cerberus-agents'))) and (i <= 2)):
+            i += 1
+            LOG.debug("responses in loop: " + str(self.responses))
+            self.event.wait(5)
+
+        LOG.info("tasks: " + str(self.tasks))
+        for task in self.tasks:
             tasks_resource.append(
                 task_models.TaskResource(json.loads(task)))
+
+        self.responses = 0
+        self.tasks = []
 
         return task_models.TaskResourceCollection(tasks=tasks_resource)
 

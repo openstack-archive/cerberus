@@ -296,7 +296,7 @@ class TestCerberusManager(base.WithDbTestCase):
         self.manager._add_unique_task(
             self.manager.cerberus_manager['plugin'].obj.fake_function,
             task_id=unique_task_id)
-        tasks = self.manager.get_tasks({'some': 'context'})
+        tasks = self.manager._get_tasks()
         self.assertTrue(len(tasks) == 2)
 
     def test_get_task_reccurent(self):
