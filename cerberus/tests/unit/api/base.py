@@ -14,7 +14,10 @@
 #    limitations under the License.
 #
 
+import mock
+
 from oslo.config import cfg
+from oslo import messaging
 import pecan.testing
 
 from cerberus.api import auth
@@ -29,6 +32,7 @@ class TestApiCase(base.TestCase):
 
     def setUp(self):
         super(TestApiCase, self).setUp()
+        messaging.server.MessageHandlingServer.start = mock.MagicMock()
         self.app = self._make_app()
         self.dbapi = dbapi.get_instance()
         cfg.CONF.set_override("auth_version",

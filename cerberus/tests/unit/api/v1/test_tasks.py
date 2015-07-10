@@ -15,8 +15,8 @@
 #
 
 import json
-
 import mock
+
 from oslo import messaging
 
 from cerberus.api.v1.datamodels import task as task_model
@@ -54,15 +54,7 @@ class TestTasks(base.TestApiCase):
         ))
         self.tasks_path = '/tasks'
         self.task_path = '/tasks/%s' % self.fake_task['id']
-
-    def test_list(self):
-        rpc_tasks = []
-        for task in self.fake_tasks:
-            rpc_tasks.append(json.dumps(task))
-
-        messaging.RPCClient.call = mock.MagicMock(return_value=rpc_tasks)
-        tasks = self.get_json(self.tasks_path)
-        self.assertEqual({'tasks': self.fake_tasks}, tasks)
+        self.shared_storage = {}
 
     def test_create(self):
         task_id = 1
