@@ -23,5 +23,13 @@ keystone_opts = [
                help=_('The strategy to use for authentication.'))
 ]
 
+OPTS = [
+    cfg.StrOpt('timeout',
+               default=20,
+               help='The timeout to use if agents do not reply to asynchronous'
+                    ' requests made by the api')
+]
+
 CONF = cfg.CONF
 CONF.register_opts(keystone_opts)
+CONF.register_opts(OPTS, group='api_opts')
