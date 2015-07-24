@@ -13,6 +13,11 @@ Introduction
 Cerberus is a Security As A Service project aimed at integrating security tools
 inside Openstack.
 
+Cerberus offers a framework to integrate **security components** (scanners of
+vulnerabilities, behavior analysis, IPS, IDS, SIEM) in order to propagate
+changes of the platform to them and to collect security reports and security
+alarms.
+
 Installation
 ============
 
