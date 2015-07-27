@@ -24,9 +24,9 @@ Cerberus' manager
 Cerberus is easy to extend thanks to a plugin system.
 
 The manager has some functions:
-* it loads **plugins**
-* it manages **tasks**
-* it stores **security reports** and **security alarms** in database
+* it loads ``plugins``
+* it manages ``tasks``
+* it stores ``security reports`` and ``security alarms`` in database
 
 
 Plugins
@@ -44,7 +44,7 @@ Plugins can subscribe to events sent on the notification topic Cerberus'
 manager listens on. For example, this can be useful to automatically configure
 a tool if a project has been created or if a certain role is granted to an user.
 Plugins may also implement some functions that the manager calls through
-**tasks**.
+``tasks``.
 
 
 Tasks
