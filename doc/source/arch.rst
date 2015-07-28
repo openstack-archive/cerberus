@@ -61,7 +61,7 @@ information:
 * The type (periodic or not, default is not)
 * The period if the task is periodic (for now, period is in seconds only)
 * Persistent (True/False, conditional): tell Cerberus you want this task to be
-stored in database
+stored in database (useful if the manager handling the task is shut down)
 
 The tasks may be stopped/started. As such, they have a state (running or not).
 
@@ -75,11 +75,11 @@ following information:
 * The uuid of the security report
 * The uuid of the plugin
 * The report identifier
-* The component identifier
-* The component type
+* The Openstack's component identifier (e.g: an instance id, a network id)
+* The component type (e.g: instance, network)
 * The component name
 * The Openstack's project identifier
-* The ticket identifier
+* The ticket identifier (see `sticks`_)
 * The title
 * The description
 * The security rating
@@ -88,6 +88,8 @@ following information:
 * The date of the last report
 
 Security reports may be retrieved by their uuid.
+
+.. _sticks: http://sticks-project.readthedocs.org/en/latest/index.html
 
 
 Security alarms
@@ -100,13 +102,13 @@ following information:
 * The uuid of the alarm
 * The uuid of the plugin
 * The alarm identifier
-* The component identifier
+* The Openstack's component identifier (e.g: an instance id, a network id)
 * The Openstack's project identifier
-* The ticket identifier
+* The ticket identifier (see `sticks`_)
 * The timestamp (date when the notification has been received on oslo bus)
 * The summary
 * The severity
-* The status
+* The status (e.G: new)
 * The description
 
 Security alarms may be retrieved by their uuid.
