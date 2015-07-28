@@ -24,6 +24,7 @@ Cerberus' manager
 Cerberus is easy to extend thanks to a plugin system.
 
 The manager has some functions:
+
 * it loads ``plugins``
 * it manages ``tasks``
 * it stores ``security reports`` and ``security alarms`` in database
@@ -34,6 +35,7 @@ Plugins
 
 Plugins are created to communicate with a particular security component.
 They are defined by their:
+
 * unique identifier (uuid)
 * name
 * version
@@ -52,6 +54,7 @@ Tasks
 Cerberus manages tasks.
 In order to create a task, you need to call the Cerberus' API by passing some
 information:
+
 * The name of the task
 * The plugin uuid handling the task
 * The method to call on this plugin
