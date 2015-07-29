@@ -46,7 +46,8 @@ Plugins can subscribe to events sent on the notification topic Cerberus'
 manager listens on. For example, this can be useful to automatically configure
 a tool if a project has been created or if a certain role is granted to an user.
 Plugins may also implement some functions that the manager calls through
-``tasks``.
+``tasks`` (e.g: a scan to run once a day, retrieve security reports once
+a week...)
 
 
 Tasks
@@ -63,7 +64,9 @@ information:
 - Persistent (True/False, conditional): tell Cerberus you want this task to be
 stored in database (useful if the manager handling the task is shut down)
 
-The tasks may be stopped/started. As such, they have a state (running or not).
+The periodic tasks may be stopped/started. As such, they have a state (running
+or not). The tasks that are not periodic may be stopped but it is not possible
+to start them after.
 
 
 Security reports
