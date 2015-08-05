@@ -100,11 +100,17 @@ class AuthorizationHook(hooks.PecanHook):
         self.member_routes = member_routes
         super(AuthorizationHook, self).__init__()
 
+    def is_path_in_routes(self, path):
+        for p in self.member_routes:
+            if path.startswith(p):
+                return True
+        return False
+
     def before(self, state):
         ctx = state.request.context
 
         if not ctx.is_admin and not ctx.is_public_api and \
-                state.request.path not in self.member_routes:
+                not self.is_path_in_routes(state.request.path):
                 raise exc.HTTPForbidden()
 
 
