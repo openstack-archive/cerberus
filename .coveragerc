@@ -4,4 +4,4 @@ source = cerberus
 omit = cerberus/tests/*,cerberus/openstack/*
 
 [report]
-ignore-errors = True
+ignore_errors = True
