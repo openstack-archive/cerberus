@@ -1,0 +1,9 @@
+Verified+2: Jenkins
+Code-Review+2: Anthony Michon <anthony.michon@eurogiciel.fr>
+Workflow+1: Anthony Michon <anthony.michon@eurogiciel.fr>
+Code-Review+1: venkatamahesh <venkatamaheshkotha@gmail.com>
+Submitted-by: Jenkins
+Submitted-at: Mon, 23 Nov 2015 08:28:41 +0000
+Reviewed-on: https://review.openstack.org/237475
+Project: openstack/cerberus
+Branch: refs/heads/master
