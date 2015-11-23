@@ -13,7 +13,7 @@ Retrieve and install Cerberus :
 
 ::
 
-    git clone git://git.openstack.org/stackforge/cerberus
+    git clone git://git.openstack.org/openstack/cerberus
     cd cerberus
     python setup.py install
 
