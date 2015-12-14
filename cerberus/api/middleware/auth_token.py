@@ -16,7 +16,7 @@
 
 import re
 
-from keystoneclient.middleware import auth_token
+from keystonemiddleware import auth_token
 
 from cerberus.common import exception
 from cerberus.common import safe_utils
