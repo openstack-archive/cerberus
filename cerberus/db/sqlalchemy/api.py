@@ -18,6 +18,7 @@ import sys
 import threading
 
 from oslo.config import cfg
+import six
 
 from cerberus.common import exception
 from cerberus.db.sqlalchemy import models
@@ -43,7 +44,7 @@ def _create_facade_lazily():
     if _FACADE is None:
         _FACADE = db_session.EngineFacade(
             CONF.database.connection,
-            **dict(CONF.database.iteritems())
+            **dict(six.iteritems(CONF.database))
         )
     return _FACADE
 
