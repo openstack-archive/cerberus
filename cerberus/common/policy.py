@@ -17,7 +17,7 @@
 
 from oslo.config import cfg
 
-from cerberus.openstack.common import policy
+from oslo_policy import policy as oslo_policy
 
 _ENFORCER = None
 CONF = cfg.CONF
@@ -41,7 +41,7 @@ def init_enforcer(policy_file=None, rules=None,
     if _ENFORCER:
         return
 
-    _ENFORCER = policy.Enforcer(policy_file=policy_file,
+    _ENFORCER = oslo_policy.Enforcer(policy_file=policy_file,
                                 rules=rules,
                                 default_rule=default_rule,
                                 use_conf=use_conf)

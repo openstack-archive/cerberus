@@ -18,9 +18,9 @@ import os
 
 import fixtures
 from oslo.config import cfg
+from oslo_policy import policy as oslo_policy
 
 from cerberus.common import policy as cerberus_policy
-from cerberus.openstack.common import policy as common_policy
 from cerberus.tests.unit import fake_policy
 
 
@@ -41,6 +41,6 @@ class PolicyFixture(fixtures.Fixture):
         self.addCleanup(cerberus_policy.get_enforcer().clear)
 
     def set_rules(self, rules):
-        common_policy.set_rules(common_policy.Rules(
-            dict((k, common_policy.parse_rule(v))
+        oslo_policy.set_rules(oslo_policy.Rules(
+            dict((k, oslo_policy.parse_rule(v))
                  for k, v in rules.items())))
