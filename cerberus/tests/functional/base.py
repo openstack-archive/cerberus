@@ -19,10 +19,10 @@ import os
 
 from tempest import clients
 from tempest import config
-from tempest_lib import auth
-from tempest_lib import base
-from tempest_lib.common import rest_client
-from tempest_lib import exceptions
+from tempest.lib import auth
+from tempest.lib import base
+from tempest.lib.common import rest_client
+from tempest.lib import exceptions
 
 
 CONF = config.CONF
