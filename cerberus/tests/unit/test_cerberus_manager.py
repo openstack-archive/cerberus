@@ -279,7 +279,7 @@ class TestCerberusManager(base.WithDbTestCase):
             self.manager.cerberus_manager['plugin'].obj.fake_function,
             task_id=unique_task_id)
         tasks = self.manager._get_tasks()
-        self.assertTrue(len(tasks) == 2)
+        self.assertEqual(len(tasks), 2)
         self.assertTrue(
             isinstance(tasks[0],
                        loopingcall.CerberusFixedIntervalLoopingCall))
@@ -297,7 +297,7 @@ class TestCerberusManager(base.WithDbTestCase):
             self.manager.cerberus_manager['plugin'].obj.fake_function,
             task_id=unique_task_id)
         tasks = self.manager.get_tasks({'some': 'context'})
-        self.assertTrue(len(tasks) == 2)
+        self.assertEqual(len(tasks), 2)
 
     def test_get_task_reccurent(self):
         task_id = 1
@@ -335,11 +335,11 @@ class TestCerberusManager(base.WithDbTestCase):
             task_id=unique_task_id,
             task_name=unique_task_name)
         task = self.manager.get_task({'some': 'context'}, 1)
-        self.assertTrue(json.loads(task).get('name') == recurrent_task_name)
-        self.assertTrue(int(json.loads(task).get('id')) == recurrent_task_id)
+        self.assertEqual(json.loads(task).get('name'), recurrent_task_name)
+        self.assertEqual(int(json.loads(task).get('id')), recurrent_task_id)
         task_2 = self.manager.get_task({'some': 'context'}, 2)
-        self.assertTrue(json.loads(task_2).get('name') == unique_task_name)
-        self.assertTrue(int(json.loads(task_2).get('id')) == unique_task_id)
+        self.assertEqual(json.loads(task_2).get('name'), unique_task_name)
+        self.assertEqual(int(json.loads(task_2).get('id')), unique_task_id)
 
     def test_stop_unique_task(self):
         task_id = 1
@@ -373,17 +373,17 @@ class TestCerberusManager(base.WithDbTestCase):
         self.manager._add_unique_task(
             self.manager.cerberus_manager['plugin'].obj.fake_function,
             task_id=unique_task_id)
-        self.assertTrue(len(self.manager.tg.timers) == 1)
+        self.assertEqual(len(self.manager.tg.timers), 1)
         assert(self.manager.tg.timers[0]._running is True)
-        self.assertTrue(len(self.manager.tg.threads) == 1)
+        self.assertEqual(len(self.manager.tg.threads), 1)
         self.manager._stop_task(recurrent_task_id)
-        self.assertTrue(len(self.manager.tg.timers) == 1)
+        self.assertEqual(len(self.manager.tg.timers), 1)
         assert(self.manager.tg.timers[0]._running is False)
-        self.assertTrue(len(self.manager.tg.threads) == 1)
+        self.assertEqual(len(self.manager.tg.threads), 1)
         self.manager._stop_task(unique_task_id)
-        self.assertTrue(len(self.manager.tg.timers) == 1)
+        self.assertEqual(len(self.manager.tg.timers), 1)
         assert(self.manager.tg.timers[0]._running is False)
-        self.assertTrue(len(self.manager.tg.threads) == 0)
+        self.assertEqual(len(self.manager.tg.threads), 0)
 
     @mock.patch.object(manager.CerberusManager, "_stop_task")
     def test_stop_task(self, mock):

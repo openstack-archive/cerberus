@@ -152,7 +152,7 @@ class TestNeutronClient(base.TestCase):
         nc.neutronClient.list_networks = mock.MagicMock(
             return_value=self.fake_networks_list())
         networks = nc.list_networks('tenant')
-        self.assertTrue(len(networks) == 1)
+        self.assertEqual(len(networks), 1)
         self.assertEqual('298a3088-a446-4d5a-bad8-f92ecacd786b',
                          networks[0].get('id'))
 
@@ -162,7 +162,7 @@ class TestNeutronClient(base.TestCase):
         nc.neutronClient.list_floatingips = mock.MagicMock(
             return_value=self.fake_floating_ips_list())
         floating_ips = nc.list_floatingips('tenant')
-        self.assertTrue(len(floating_ips) == 2)
+        self.assertEqual(len(floating_ips), 2)
         self.assertEqual('2f245a7b-796b-4f26-9cf9-9e82d248fda7',
                          floating_ips[0].get('id'))
         self.assertEqual('61cea855-49cb-4846-997d-801b70c71bdd',
@@ -174,7 +174,7 @@ class TestNeutronClient(base.TestCase):
         nc.neutronClient.list_floatingips = mock.MagicMock(
             return_value=self.fake_floating_ips_list())
         floating_ips = nc.list_associated_floatingips()
-        self.assertTrue(len(floating_ips) == 1)
+        self.assertEqual(len(floating_ips), 1)
         self.assertEqual('2f245a7b-796b-4f26-9cf9-9e82d248fda7',
                          floating_ips[0].get('id'))
 
@@ -184,7 +184,7 @@ class TestNeutronClient(base.TestCase):
         nc.neutronClient.show_subnet = mock.MagicMock(
             return_value=self.fake_subnet_get())
         subnet_ips = nc.subnet_ips_get("d32019d3-bc6e-4319-9c1d-6722fc136a22")
-        self.assertTrue(len(subnet_ips) == 1)
+        self.assertEqual(len(subnet_ips), 1)
         self.assertEqual("192.0.0.2", subnet_ips[0].get("start", None))
         self.assertEqual("192.255.255.254", subnet_ips[0].get("end", None))
 
@@ -196,8 +196,8 @@ class TestNeutronClient(base.TestCase):
         nc.neutronClient.show_subnet = mock.MagicMock(
             return_value=self.fake_subnet_get())
         ips = nc.net_ips_get("d32019d3-bc6e-4319-9c1d-6722fc136a22")
-        self.assertTrue(len(ips) == 1)
-        self.assertTrue(len(ips[0]) == 1)
+        self.assertEqual(len(ips), 1)
+        self.assertEqual(len(ips[0]), 1)
         self.assertEqual("192.0.0.2", ips[0][0].get("start", None))
         self.assertEqual("192.255.255.254", ips[0][0].get("end", None))
 

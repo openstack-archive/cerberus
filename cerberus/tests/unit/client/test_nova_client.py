@@ -116,7 +116,7 @@ class TestNovaClient(base.TestCase):
         self.nova_client.nova_client.servers.list = mock.MagicMock(
             return_value=self.fake_servers_list())
         instances = self.nova_client.instance_get_all()
-        self.assertTrue(instances is not None)
+        self.assertIsNotNone(instances)
 
     def test_get_instance_details_from_floating_ip(self):
         self.nova_client.nova_client.servers.list = mock.MagicMock(
@@ -125,5 +125,5 @@ class TestNovaClient(base.TestCase):
             "10.0.0.1")
         instance_2 = self.nova_client.get_instance_details_from_floating_ip(
             "10.0.0.2")
-        self.assertTrue(instance_1 is not None)
-        self.assertTrue(instance_2 is None)
+        self.assertIsNotNone(instance_1)
+        self.assertIsNone(instance_2)

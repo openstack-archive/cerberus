@@ -47,7 +47,7 @@ class DbApiTestCase(base.WithDbTestCase):
         pi = db_api.plugin_info_create(
             {'name': 'NameOfPlugin',
              'uuid': '0000-aaaa-1111-bbbb'})
-        self.assertTrue(pi.id >= 0)
+        self.assertGreaterEqual(pi.id, 0)
 
     def test_plugin_info_get(self):
         db_api.plugin_info_create(
