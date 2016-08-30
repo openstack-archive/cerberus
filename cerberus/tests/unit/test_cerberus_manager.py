@@ -283,7 +283,7 @@ class TestCerberusManager(base.WithDbTestCase):
         self.assertTrue(
             isinstance(tasks[0],
                        loopingcall.CerberusFixedIntervalLoopingCall))
-        self.assertTrue(isinstance(tasks[1], threadgroup.CerberusThread))
+        self.assertIsInstance(tasks[1], threadgroup.CerberusThread)
 
     def test_get_tasks_(self):
         recurrent_task_id = 1
@@ -316,7 +316,7 @@ class TestCerberusManager(base.WithDbTestCase):
             self.manager.cerberus_manager['plugin'].obj.fake_function,
             task_id=task_id)
         task = self.manager._get_task(task_id)
-        self.assertTrue(isinstance(task, threadgroup.CerberusThread))
+        self.assertIsInstance(task, threadgroup.CerberusThread)
 
     def test_get_task(self):
         recurrent_task_id = 1
