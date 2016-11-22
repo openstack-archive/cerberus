@@ -5,9 +5,8 @@ Prerequisites
 -------------
 
 1. **tempest**
-2. **tempest_lib**
-3. **nose**
-4. **Configure tempest**
+2. **nose**
+3. **Configure tempest**
 
 
 USAGE
