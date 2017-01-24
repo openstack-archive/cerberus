@@ -35,7 +35,7 @@ class MoxStubout(fixtures.Fixture):
 
     def setUp(self):
         super(MoxStubout, self).setUp()
-        # emulate some of the mox stuff, we can't use the metaclass
+        # emulate some mox stuffs, we can't use the metaclass
         # because it screws with our generators
         self.mox = mox.Mox()
         self.stubs = self.mox.stubs

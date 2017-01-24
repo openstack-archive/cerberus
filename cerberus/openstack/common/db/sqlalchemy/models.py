@@ -36,7 +36,7 @@ class ModelBase(six.Iterator):
     def save(self, session):
         """Save this object."""
 
-        # NOTE(boris-42): This part of code should be look like:
+        # NOTE(boris-42): This part of code should be looked like:
         #                       session.add(self)
         #                       session.flush()
         #                 But there is a bug in sqlalchemy and eventlet that

@@ -181,7 +181,7 @@ class BaseMigrationTestCase(test.BaseTestCase):
 
 class WalkVersionsMixin(object):
     def _walk_versions(self, engine=None, snake_walk=False, downgrade=True):
-        # Determine latest version script from the repo, then
+        # Determine the latest version script from the repo, then
         # upgrade from 1 through to the latest, with no data
         # in the databases. This just checks that the schema itself
         # upgrades successfully.
