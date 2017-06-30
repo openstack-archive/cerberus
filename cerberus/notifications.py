@@ -16,7 +16,7 @@
 import socket
 
 from oslo.config import cfg
-from oslo import messaging
+import oslo_messaging as messaging
 
 from cerberus.openstack.common.gettextutils import _  # noqa
 from cerberus.openstack.common import log
@@ -50,7 +50,7 @@ def _get_notifier():
     if _notifier is None:
         host = cfg.CONF.default_publisher_id or socket.gethostname()
         try:
-            transport = messaging.get_transport(cfg.CONF)
+            transport = messaging.get_rpc_transport(cfg.CONF)
             _notifier = messaging.Notifier(transport, "security.%s" % host,
                                            topic=cfg.CONF.notifier_topic)
         except Exception:

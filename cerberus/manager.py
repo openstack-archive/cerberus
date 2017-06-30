@@ -18,7 +18,7 @@ import json
 import uuid
 
 from oslo.config import cfg
-from oslo import messaging
+from oslo_messaging import messaging
 from stevedore import extension
 
 from cerberus.common import errors
@@ -151,7 +151,7 @@ class CerberusManager(service.CerberusService):
         self.notification_server = None
         super(CerberusManager, self).start()
 
-        transport = messaging.get_transport(cfg.CONF)
+        transport = messaging.get_rpc_transport(cfg.CONF)
         self.notifier = notifications._get_notifier()
         targets = []
         plugins = []
