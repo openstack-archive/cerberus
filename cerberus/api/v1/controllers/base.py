@@ -17,7 +17,7 @@
 from pecan import rest
 
 from oslo.config import cfg
-from oslo import messaging
+from oslo_messaging import messaging
 
 from cerberus.openstack.common import log
 
@@ -29,6 +29,6 @@ class BaseController(rest.RestController):
 
     def __init__(self):
         super(BaseController, self).__init__()
-        transport = messaging.get_transport(cfg.CONF)
+        transport = messaging.get_rpc_transport(cfg.CONF)
         target = messaging.Target(topic='test_rpc', server='server1')
         self.client = messaging.RPCClient(transport, target)
