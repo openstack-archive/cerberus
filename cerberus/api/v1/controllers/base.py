@@ -29,6 +29,6 @@ class BaseController(rest.RestController):
 
     def __init__(self):
         super(BaseController, self).__init__()
-        transport = messaging.get_transport(cfg.CONF)
+        transport = messaging.get_rpc_transport(cfg.CONF)
         target = messaging.Target(topic='test_rpc', server='server1')
         self.client = messaging.RPCClient(transport, target)
