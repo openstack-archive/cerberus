@@ -10,7 +10,6 @@ discover<=0.4.0
 # fixture stubbing
 fixtures>=0.3.14,<=1.0.0
 oslotest>=1.2.0,<1.3
-python-subunit>=0.0.18,<=1.1.0
 nose
 nose-exclude
 nosexcover
