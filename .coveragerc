@@ -1,7 +1,0 @@
-[run]
-branch = True
-source = cerberus
-omit = cerberus/tests/*,cerberus/openstack/*
-
-[report]
-ignore_errors = True

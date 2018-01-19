@@ -1,15 +1,10 @@
-===============================
-cerberus
-===============================
+This project is no longer maintained.
 
-Cerberus security component
+The contents of this repository are still available in the Git
+source code management system.  To see the contents of this
+repository before it reached its end of life, please check out the
+previous commit with "git checkout HEAD^1".
 
-* Free software: Apache license
-* Documentation: http://docs.openstack.org/developer/cerberus
-* Source: http://git.openstack.org/cgit/openstack/cerberus
-* Bugs: http://bugs.launchpad.net/replace with the name of the project on launchpad
-
-Features
---------
-
-* TODO
+For any further questions, please email
+openstack-dev@lists.openstack.org or join #openstack-dev on
+Freenode.
