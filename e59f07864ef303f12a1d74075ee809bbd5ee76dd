@@ -1,0 +1,9 @@
+Code-Review+1: Andreas Jaeger <jaegerandi@gmail.com>
+Code-Review+2: Gauvain Pocentek <gauvain.pocentek@objectif-libre.com>
+Workflow+1: Gauvain Pocentek <gauvain.pocentek@objectif-libre.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Fri, 19 Jan 2018 10:17:30 +0000
+Reviewed-on: https://review.openstack.org/535702
+Project: openstack/cerberus
+Branch: refs/heads/master
